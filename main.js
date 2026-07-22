@@ -58,7 +58,8 @@ function showControllerOverlay(){
         return;
 
 
-    overlayWindow.show();
+    overlayWindow.setOpacity(1);
+    overlayWindow.showInactive();
 
 
 }
@@ -80,22 +81,73 @@ function syncPlaybackOverlay(){
         (()=>{
             const video=document.querySelector("video");
 
-            return Boolean(
+            if(
                 video &&
                 !video.paused &&
                 !video.ended
-            );
+            ){
+
+                const isVisible=element=>{
+
+                    const style=getComputedStyle(element);
+                    const rect=element.getBoundingClientRect();
+
+
+                    return Boolean(
+                        style.display !== "none" &&
+                        style.visibility !== "hidden" &&
+                        Number(style.opacity) > 0 &&
+                        rect.width > 0 &&
+                        rect.height > 0 &&
+                        !element.closest("[aria-hidden='true']")
+                    );
+
+                };
+
+
+                const hasOtherVisibleContent=
+                    [...document.body.querySelectorAll("*")].some(element=>{
+
+                        if(
+                            element === video ||
+                            element.contains(video) ||
+                            video.contains(element) ||
+                            !isVisible(element)
+                        )
+                            return false;
+
+
+                        const tag=element.tagName.toLowerCase();
+                        const text=element.textContent?.trim();
+
+
+                        return Boolean(
+                            text ||
+                            element.getAttribute("aria-label") ||
+                            element.getAttribute("role") ||
+                            ["button","a","input","img","svg"].includes(tag)
+                        );
+
+                    });
+
+
+                return hasOtherVisibleContent;
+
+            }
+
+
+            return true;
         })()
     `).then(
-        videoPlaying=>{
+        shouldShowOverlay=>{
 
-            if(videoPlaying){
+            if(shouldShowOverlay){
 
-                hideControllerOverlay();
+                showControllerOverlay();
 
             }else{
 
-                showControllerOverlay();
+                hideControllerOverlay();
 
             }
 
@@ -314,7 +366,8 @@ ipcMain.on(
 
             }else{
 
-                overlayWindow.show();
+                overlayWindow.setOpacity(1);
+                overlayWindow.showInactive();
 
             }
 
@@ -512,7 +565,8 @@ function createOverlay(){
 
                 }else{
 
-                    overlayWindow.show();
+                    overlayWindow.setOpacity(1);
+                    overlayWindow.showInactive();
 
                 }
 
