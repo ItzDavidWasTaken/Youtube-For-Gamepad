@@ -6,6 +6,7 @@ const {
 
 const path = require("path");
 
+
 let mainWindow;
 
 
@@ -14,6 +15,7 @@ const TV_USER_AGENT =
 
 
 function createWindow() {
+
 
     mainWindow = new BrowserWindow({
 
@@ -25,47 +27,96 @@ function createWindow() {
 
         autoHideMenuBar: true,
 
+        backgroundColor: "#000000",
+
         webPreferences: {
+
             contextIsolation: true,
             nodeIntegration: false
+
         }
 
     });
 
 
+    // Force TV user agent
     mainWindow.webContents.setUserAgent(
         TV_USER_AGENT
     );
 
 
+    // Load YouTube TV
     mainWindow.loadURL(
         "https://www.youtube.com/tv"
     );
 
+
+    // Start controller after YouTube has loaded
+    mainWindow.webContents.on(
+        "did-finish-load",
+        () => {
+
+            console.log(
+                "YouTube TV loaded"
+            );
+
+
+            try {
+
+                require("./controller")(
+                    mainWindow
+                );
+
+
+                console.log(
+                    "Controller started"
+                );
+
+
+            }
+            catch(error) {
+
+
+                console.error(
+                    "Controller failed:",
+                    error
+                );
+
+
+            }
+
+        }
+    );
+
+
+    mainWindow.on(
+        "closed",
+        () => {
+
+            mainWindow = null;
+
+        }
+    );
+
 }
 
-mainWindow.webContents.on(
-    "did-finish-load",
-    ()=>{
 
-        require("./controller")(
-            mainWindow
-        );
-
-    }
-);
 
 app.whenReady().then(async () => {
 
 
+    // Clear old desktop-mode cookies/cache
     await session.defaultSession.clearCache();
 
 
+    // Force TV user agent on every request
     session.defaultSession.webRequest.onBeforeSendHeaders(
         (details, callback) => {
 
-            details.requestHeaders["User-Agent"] =
-                TV_USER_AGENT;
+
+            details.requestHeaders[
+                "User-Agent"
+            ] = TV_USER_AGENT;
 
 
             callback({
@@ -73,10 +124,27 @@ app.whenReady().then(async () => {
                     details.requestHeaders
             });
 
+
         }
     );
 
 
     createWindow();
 
+
 });
+
+
+
+app.on(
+    "window-all-closed",
+    () => {
+
+        if (process.platform !== "darwin") {
+
+            app.quit();
+
+        }
+
+    }
+);
