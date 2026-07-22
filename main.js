@@ -133,29 +133,44 @@ function syncPlaybackOverlay(){
             }
 
 
-            const controls=document.querySelector(
-                ".ytp-chrome-bottom, .ytp-chrome-controls, #player-controls, .player-controls, [class*='PlayerControls'], [class*='player-controls']"
-            );
+            const isVisible=element=>{
+
+                const style=getComputedStyle(element);
+                const rect=element.getBoundingClientRect();
 
 
-            if(!controls){
+                return Boolean(
+                    style.display !== "none" &&
+                    style.visibility !== "hidden" &&
+                    Number(style.opacity) > 0 &&
+                    rect.width > 0 &&
+                    rect.height > 0 &&
+                    !element.closest("[aria-hidden='true']")
+                );
 
-                return false;
-
-            }
+            };
 
 
-            const style=getComputedStyle(controls);
-            const rect=controls.getBoundingClientRect();
+            const controlSelectors=[
+                ".ytp-chrome-bottom",
+                ".ytp-chrome-controls",
+                "#player-controls",
+                ".player-controls",
+                "[class*='PlayerControls']",
+                "[class*='player-controls']",
+                "[class*='PlaybackControls']",
+                "[class*='playback-controls']",
+                "[aria-label*='pause' i]",
+                "[aria-label*='play' i]",
+                "[aria-label*='seek' i]",
+                "[aria-label*='skip' i]"
+            ];
 
 
-            return Boolean(
-                style.display !== "none" &&
-                style.visibility !== "hidden" &&
-                Number(style.opacity) > 0 &&
-                rect.width > 0 &&
-                rect.height > 0 &&
-                !controls.closest("[aria-hidden='true']")
+            return controlSelectors.some(
+                selector=>[...document.querySelectorAll(selector)].some(
+                    element=>isVisible(element)
+                )
             );
         })()
     `).then(
@@ -500,7 +515,7 @@ function createOverlay(){
 
     const height =
         Math.round(
-            72 * scale
+            60 * scale
         );
 
 
@@ -708,8 +723,17 @@ function createWindow(){
     ()=>{
 
 
+        const overlayHeight =
+            Math.round(
+                60 * Math.max(
+                    1,
+                    screen.getPrimaryDisplay().bounds.width / 1920
+                )
+            );
+
+
         mainWindow.webContents.insertCSS(
-            "* { cursor: none !important; pointer-events: none !important; }"
+            `body { padding-bottom: ${overlayHeight}px !important; box-sizing: border-box !important; } * { cursor: none !important; pointer-events: none !important; }`
         );
 
 
