@@ -1,10 +1,15 @@
-let controller;
-
-
 module.exports = function(win) {
 
 
-    console.log("Starting controller...");
+    if (!win) {
+
+        console.log(
+            "No window supplied to controller"
+        );
+
+        return;
+
+    }
 
 
     try {
@@ -14,7 +19,12 @@ module.exports = function(win) {
             require("node-gamepad");
 
 
-        controller =
+        console.log(
+            "Controller module loaded"
+        );
+
+
+        const controller =
             new Gamepad("xbox360");
 
 
@@ -24,6 +34,7 @@ module.exports = function(win) {
         console.log(
             "Controller connected"
         );
+
 
 
         function sendKey(key) {
@@ -37,18 +48,18 @@ module.exports = function(win) {
             });
 
 
-            setTimeout(()=>{
+            setTimeout(() => {
 
 
                 win.webContents.sendInputEvent({
 
-                    type:"keyUp",
-                    keyCode:key
+                    type: "keyUp",
+                    keyCode: key
 
                 });
 
 
-            },50);
+            }, 50);
 
 
         }
@@ -61,12 +72,12 @@ module.exports = function(win) {
 
 
                 console.log(
-                    "Pressed:",
+                    "Button:",
                     button
                 );
 
 
-                switch(button){
+                switch(button) {
 
 
                     case "A":
@@ -76,16 +87,6 @@ module.exports = function(win) {
 
                     case "B":
                         sendKey("ESC");
-                        break;
-
-
-                    case "X":
-                        sendKey("S");
-                        break;
-
-
-                    case "Y":
-                        sendKey("HOME");
                         break;
 
 
@@ -113,6 +114,7 @@ module.exports = function(win) {
                         sendKey("RIGHT");
                         break;
 
+
                 }
 
 
@@ -121,16 +123,18 @@ module.exports = function(win) {
 
 
     }
-    catch(error){
+    catch(error) {
 
 
-        console.error(
-            "Controller failed:",
-            error
+        console.log(
+            "Controller disabled:",
+            error.message
         );
 
 
-    }
+        // Do nothing.
+        // App continues without controller.
 
+    }
 
 };

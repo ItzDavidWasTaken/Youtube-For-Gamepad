@@ -4,8 +4,6 @@ const {
     session
 } = require("electron");
 
-const path = require("path");
-
 
 let mainWindow;
 
@@ -15,7 +13,6 @@ const TV_USER_AGENT =
 
 
 function createWindow() {
-
 
     mainWindow = new BrowserWindow({
 
@@ -39,19 +36,16 @@ function createWindow() {
     });
 
 
-    // Force TV user agent
     mainWindow.webContents.setUserAgent(
         TV_USER_AGENT
     );
 
 
-    // Load YouTube TV
     mainWindow.loadURL(
         "https://www.youtube.com/tv"
     );
 
 
-    // Start controller after YouTube has loaded
     mainWindow.webContents.on(
         "did-finish-load",
         () => {
@@ -61,27 +55,25 @@ function createWindow() {
             );
 
 
+            // Controller is OPTIONAL
             try {
 
-                require("./controller")(
+                const startController =
+                    require("./controller");
+
+
+                startController(
                     mainWindow
-                );
-
-
-                console.log(
-                    "Controller started"
                 );
 
 
             }
             catch(error) {
 
-
-                console.error(
-                    "Controller failed:",
-                    error
+                console.log(
+                    "Controller unavailable:",
+                    error.message
                 );
-
 
             }
 
@@ -105,11 +97,9 @@ function createWindow() {
 app.whenReady().then(async () => {
 
 
-    // Clear old desktop-mode cookies/cache
     await session.defaultSession.clearCache();
 
 
-    // Force TV user agent on every request
     session.defaultSession.webRequest.onBeforeSendHeaders(
         (details, callback) => {
 
@@ -120,8 +110,10 @@ app.whenReady().then(async () => {
 
 
             callback({
+
                 requestHeaders:
                     details.requestHeaders
+
             });
 
 
@@ -140,7 +132,7 @@ app.on(
     "window-all-closed",
     () => {
 
-        if (process.platform !== "darwin") {
+        if(process.platform !== "darwin") {
 
             app.quit();
 
