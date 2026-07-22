@@ -10,8 +10,8 @@ const path = require("path");
 const fs = require("fs");
 
 
-let mainWindow;
-let overlayWindow;
+let mainWindow = null;
+let overlayWindow = null;
 
 
 const TV_USER_AGENT =
@@ -42,13 +42,17 @@ function log(...msg){
 
 
 
+
 function sendKey(key){
 
-    if(!mainWindow)
+    if(!mainWindow || mainWindow.isDestroyed())
         return;
 
 
-    mainWindow.webContents.sendInputEvent({
+    const win = mainWindow;
+
+
+    win.webContents.sendInputEvent({
 
         type:"keyDown",
         keyCode:key
@@ -58,16 +62,23 @@ function sendKey(key){
 
     setTimeout(()=>{
 
-        mainWindow.webContents.sendInputEvent({
+        if(!win || win.isDestroyed())
+            return;
+
+
+        win.webContents.sendInputEvent({
 
             type:"keyUp",
             keyCode:key
 
         });
 
+
     },50);
 
 }
+
+
 
 
 
@@ -79,7 +90,7 @@ ipcMain.on(
 
 
         log(
-            "Controller action:",
+            "Controller:",
             action
         );
 
@@ -123,6 +134,7 @@ ipcMain.on(
 
 
 
+
 ipcMain.on(
     "controller-status",
     (event,status)=>{
@@ -160,14 +172,55 @@ ipcMain.on(
 
 
 
+
+ipcMain.on(
+    "overlay",
+    (event,state)=>{
+
+
+        if(
+            !overlayWindow ||
+            overlayWindow.isDestroyed()
+        )
+            return;
+
+
+
+        if(state === "show"){
+
+            overlayWindow.show();
+
+        }
+
+
+        if(state === "hide"){
+
+            overlayWindow.hide();
+
+        }
+
+
+    }
+);
+
+
+
+
+
+
+
+
+
 function createOverlay(){
 
 
     overlayWindow =
     new BrowserWindow({
 
-        width:900,
-        height:120,
+        width:300,
+
+        height:80,
+
 
         frame:false,
 
@@ -219,14 +272,14 @@ function createOverlay(){
         display.bounds;
 
 
+
     overlayWindow.setPosition(
 
-        Math.round(
-            bounds.x +
-            (bounds.width - 900) / 2
-        ),
+        bounds.x + 25,
 
-        bounds.height - 160
+        bounds.y +
+        bounds.height -
+        120
 
     );
 
@@ -237,13 +290,18 @@ function createOverlay(){
     );
 
 
+    overlayWindow.on(
+        "closed",
+        ()=>{
 
-    log(
-        "Overlay created"
+            overlayWindow=null;
+
+        }
     );
 
 
 }
+
 
 
 
@@ -286,6 +344,7 @@ function createWindow(){
 
 
 
+
     mainWindow.webContents.setUserAgent(
         TV_USER_AGENT
     );
@@ -321,19 +380,23 @@ function createWindow(){
 
 
 
+
     mainWindow.on(
         "closed",
         ()=>{
 
 
-            if(overlayWindow){
+            if(
+                overlayWindow &&
+                !overlayWindow.isDestroyed()
+            ){
 
                 overlayWindow.close();
 
-                overlayWindow=null;
-
             }
 
+
+            overlayWindow=null;
 
             mainWindow=null;
 
@@ -349,17 +412,15 @@ function createWindow(){
 
 
 
-
 app.whenReady().then(async()=>{
 
 
     log(
-        "Application starting"
+        "Starting"
     );
 
 
     await session.defaultSession.clearCache();
-
 
 
     session.defaultSession.webRequest.onBeforeSendHeaders(
@@ -370,7 +431,6 @@ app.whenReady().then(async()=>{
                 "User-Agent"
             ] =
             TV_USER_AGENT;
-
 
 
             callback({
@@ -385,23 +445,7 @@ app.whenReady().then(async()=>{
     );
 
 
-
     createWindow();
 
 
 });
-
-
-
-
-app.on(
-    "window-all-closed",
-    ()=>{
-
-
-        if(process.platform !== "darwin")
-            app.quit();
-
-
-    }
-);

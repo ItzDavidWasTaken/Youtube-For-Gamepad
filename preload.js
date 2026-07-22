@@ -27,6 +27,16 @@ contextBridge.exposeInMainWorld(
                 status
             );
 
+        },
+
+
+        sendOverlay:(state)=>{
+
+            ipcRenderer.send(
+                "overlay",
+                state
+            );
+
         }
 
 

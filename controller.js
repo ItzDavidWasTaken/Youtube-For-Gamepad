@@ -1,226 +1,286 @@
 module.exports = function(win){
 
 
-    win.webContents.executeJavaScript(`
+win.webContents.executeJavaScript(`
 
-    (()=>{
-
-
-        let previousButtons = [];
-
-        let lastMove = 0;
-
-        let hadController = false;
+(()=>{
 
 
-        const MOVE_DELAY = 180;
+let previousButtons = [];
+
+let lastMove = 0;
+
+let hadController = false;
+
+let lastVideoState = false;
+
+
+const MOVE_DELAY = 180;
 
 
 
-        function send(action){
+function send(action){
 
-            window.controllerAPI.sendAction(
-                action
+    window.controllerAPI.sendAction(action);
+
+}
+
+
+
+
+function checkVideo(){
+
+
+    const video =
+        document.querySelector("video");
+
+
+    if(!video)
+        return;
+
+
+
+    const playing =
+        !video.paused &&
+        video.currentTime > 0 &&
+        !video.ended;
+
+
+
+    if(
+        playing !== lastVideoState
+    ){
+
+
+        if(playing){
+
+            window.controllerAPI.sendOverlay(
+                "hide"
+            );
+
+        }
+        else{
+
+            window.controllerAPI.sendOverlay(
+                "show"
             );
 
         }
 
 
+        lastVideoState = playing;
 
-        function poll(){
+    }
 
+}
 
-            const pads =
-                navigator.getGamepads();
 
 
-            const pad =
-                pads[0];
 
+function poll(){
 
 
-            const connected =
-                pad !== null;
+const pads =
+navigator.getGamepads();
 
 
+const pad =
+pads[0];
 
-            if(
-                connected &&
-                !hadController
-            ){
 
-                window.controllerAPI.sendStatus(
-                    "connected"
-                );
 
-            }
+const connected =
+pad !== null;
 
 
 
-            if(
-                !connected &&
-                hadController
-            ){
+if(
+connected &&
+!hadController
+){
 
-                window.controllerAPI.sendStatus(
-                    "disconnected"
-                );
+window.controllerAPI.sendStatus(
+"connected"
+);
 
-            }
+}
 
 
 
-            hadController =
-                connected;
+if(
+!connected &&
+hadController
+){
 
+window.controllerAPI.sendStatus(
+"disconnected"
+);
 
+}
 
-            if(pad){
 
 
+hadController =
+connected;
 
-                pad.buttons.forEach(
-                    (button,index)=>{
 
 
-                        if(
-                            button.pressed &&
-                            !previousButtons[index]
-                        ){
 
 
-                            switch(index){
+if(pad){
 
 
-                                case 0:
-                                    send("SELECT");
-                                    break;
 
+pad.buttons.forEach(
+(button,index)=>{
 
-                                case 1:
-                                    send("BACK");
-                                    break;
 
+if(
+button.pressed &&
+!previousButtons[index]
+){
 
-                                case 9:
-                                    send("PLAY");
-                                    break;
 
+switch(index){
 
-                                case 12:
-                                    send("UP");
-                                    break;
 
+case 0:
+send("SELECT");
+break;
 
-                                case 13:
-                                    send("DOWN");
-                                    break;
 
+case 1:
+send("BACK");
+break;
 
-                                case 14:
-                                    send("LEFT");
-                                    break;
 
+case 9:
+send("PLAY");
+break;
 
-                                case 15:
-                                    send("RIGHT");
-                                    break;
 
+case 12:
+send("UP");
+break;
 
-                            }
 
-                        }
+case 13:
+send("DOWN");
+break;
 
 
-                    }
-                );
+case 14:
+send("LEFT");
+break;
 
 
+case 15:
+send("RIGHT");
+break;
 
-                previousButtons =
-                    pad.buttons.map(
-                        b=>b.pressed
-                    );
 
+}
 
 
+}
 
-                const now =
-                    Date.now();
 
+}
+);
 
-                if(
-                    now-lastMove >
-                    MOVE_DELAY
-                ){
 
 
-                    const x =
-                        pad.axes[0];
+previousButtons =
+pad.buttons.map(
+b=>b.pressed
+);
 
 
-                    const y =
-                        pad.axes[1];
 
 
-                    if(x < -0.65){
 
-                        send("LEFT");
+const now =
+Date.now();
 
-                        lastMove=now;
 
-                    }
+if(
+now-lastMove >
+MOVE_DELAY
+){
 
 
-                    if(x > 0.65){
+const x =
+pad.axes[0];
 
-                        send("RIGHT");
 
-                        lastMove=now;
+const y =
+pad.axes[1];
 
-                    }
 
 
-                    if(y < -0.65){
+if(x < -0.65){
 
-                        send("UP");
+send("LEFT");
+lastMove=now;
 
-                        lastMove=now;
+}
 
-                    }
 
 
-                    if(y > 0.65){
+if(x > 0.65){
 
-                        send("DOWN");
+send("RIGHT");
+lastMove=now;
 
-                        lastMove=now;
+}
 
-                    }
 
 
-                }
+if(y < -0.65){
 
+send("UP");
+lastMove=now;
 
-            }
+}
 
 
 
-            requestAnimationFrame(
-                poll
-            );
+if(y > 0.65){
 
+send("DOWN");
+lastMove=now;
 
-        }
+}
 
 
+}
 
-        poll();
 
+}
 
-    })();
 
-    `);
 
+requestAnimationFrame(
+poll
+);
+
+
+}
+
+
+
+setInterval(
+checkVideo,
+1000
+);
+
+
+poll();
+
+
+
+})();
+
+`);
 
 };
