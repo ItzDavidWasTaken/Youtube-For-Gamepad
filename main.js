@@ -396,19 +396,19 @@ function createOverlay(){
 
     const width =
         Math.round(
-            620 * scale
+            bounds.width
         );
 
 
     const height =
         Math.round(
-            64 * scale
+            72 * scale
         );
 
 
     const margin =
         Math.round(
-            40 * scale
+            0
         );
 
 
