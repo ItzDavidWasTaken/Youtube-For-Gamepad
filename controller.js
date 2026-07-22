@@ -1,10 +1,7 @@
-const controls =
-require("./controls");
-
+const controls = require("./controls");
 
 
 module.exports = function(win){
-
 
 
 win.webContents.executeJavaScript(`
@@ -12,76 +9,63 @@ win.webContents.executeJavaScript(`
 (()=>{
 
 
-let state = "HOME";
+let currentState = "HOME";
 
 
 let previousButtons = [];
-
-let lastMove = 0;
-
-
-const MOVE_DELAY = 180;
-
 
 
 
 function send(action){
 
-    window.controllerAPI.sendAction(
-        action
-    );
+    window.controllerAPI.sendAction(action);
 
 }
 
 
 
+function getAction(button){
+
+    const profiles = {
+
+        HOME:{
+            0:"SELECT",
+            1:"BACK",
+            3:"SEARCH",
+            9:"MENU"
+        },
 
 
-window.controllerAPI.setState =
-function(newState){
-
-    state = newState;
-
-};
-
-
-
-
-
-function buttonName(id){
+        VIDEO:{
+            0:"SELECT",
+            1:"BACK",
+            3:"HIDE_CONTROLS",
+            6:"VOLUME_DOWN",
+            7:"VOLUME_UP",
+            4:"SKIP_BACK",
+            5:"SKIP_FORWARD",
+            9:"PAUSE"
+        },
 
 
-switch(id){
+        SEARCH:{
+            0:"CONFIRM",
+            1:"CLOSE",
+            2:"BACKSPACE",
+            3:"CLEAR"
+        }
+
+    };
 
 
-case 0:return "A";
-case 1:return "B";
-case 2:return "X";
-case 3:return "Y";
-
-case 4:return "LB";
-case 5:return "RB";
-
-case 6:return "LT";
-case 7:return "RT";
-
-case 9:return "START";
-
-
-}
-
-
-return null;
-
+    return profiles[currentState]?.[button];
 
 }
-
 
 
 
 
 function poll(){
-
 
 
 const pads =
@@ -96,7 +80,6 @@ pads[0];
 if(pad){
 
 
-
 pad.buttons.forEach(
 (button,index)=>{
 
@@ -107,20 +90,8 @@ button.pressed &&
 ){
 
 
-
-const name =
-buttonName(index);
-
-
-
-if(name){
-
-
 const action =
-window.controllerAPI.getControl(
-state,
-name
-);
+getAction(index);
 
 
 
@@ -134,11 +105,7 @@ send(action);
 }
 
 
-}
-
-
 });
-
 
 
 
@@ -149,75 +116,12 @@ b=>b.pressed
 
 
 
-
-
-
-const now =
-Date.now();
-
-
-
-if(now-lastMove > MOVE_DELAY){
-
-
-const x =
-pad.axes[0];
-
-
-const y =
-pad.axes[1];
-
-
-
-if(x < -0.65){
-
-send("LEFT");
-
-lastMove=now;
-
 }
-
-
-if(x > 0.65){
-
-send("RIGHT");
-
-lastMove=now;
-
-}
-
-
-if(y < -0.65){
-
-send("UP");
-
-lastMove=now;
-
-}
-
-
-if(y > 0.65){
-
-send("DOWN");
-
-lastMove=now;
-
-}
-
-
-}
-
-
-
-}
-
-
 
 
 requestAnimationFrame(
 poll
 );
-
 
 
 }
