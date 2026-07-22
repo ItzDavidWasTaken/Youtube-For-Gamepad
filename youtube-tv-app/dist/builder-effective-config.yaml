@@ -1,0 +1,9 @@
+directories:
+  output: dist
+  buildResources: build
+appId: com.youtube.tv.app
+productName: YouTube TV
+win:
+  target: portable
+files: []
+electronVersion: 37.10.3
