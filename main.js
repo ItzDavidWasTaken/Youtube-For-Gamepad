@@ -52,9 +52,9 @@ function createWindow() {
     );
 
 
-    require("./controller")(
-        mainWindow
-    );
+    //require("./controller")(
+    //    mainWindow
+    //);
 
 }
 
