@@ -1,107 +1,136 @@
-const Gamepad = require("node-gamepad");
+let controller;
 
 
-module.exports = function(window){
+module.exports = function(win) {
 
 
-    console.log(
-        "Starting controller system"
-    );
+    console.log("Starting controller...");
 
 
-    const controller =
-        new Gamepad("xbox360");
+    try {
 
 
-    controller.connect();
+        const Gamepad =
+            require("node-gamepad");
 
 
-    function sendKey(key){
+        controller =
+            new Gamepad("xbox360");
 
 
-        window.webContents.sendInputEvent({
-
-            type:"keyDown",
-            keyCode:key
-
-        });
+        controller.connect();
 
 
-        setTimeout(()=>{
+        console.log(
+            "Controller connected"
+        );
 
-            window.webContents.sendInputEvent({
 
-                type:"keyUp",
-                keyCode:key
+        function sendKey(key) {
+
+
+            win.webContents.sendInputEvent({
+
+                type: "keyDown",
+                keyCode: key
 
             });
 
-        },50);
+
+            setTimeout(()=>{
+
+
+                win.webContents.sendInputEvent({
+
+                    type:"keyUp",
+                    keyCode:key
+
+                });
+
+
+            },50);
+
+
+        }
+
+
+
+        controller.on(
+            "down",
+            button => {
+
+
+                console.log(
+                    "Pressed:",
+                    button
+                );
+
+
+                switch(button){
+
+
+                    case "A":
+                        sendKey("ENTER");
+                        break;
+
+
+                    case "B":
+                        sendKey("ESC");
+                        break;
+
+
+                    case "X":
+                        sendKey("S");
+                        break;
+
+
+                    case "Y":
+                        sendKey("HOME");
+                        break;
+
+
+                    case "START":
+                        sendKey("SPACE");
+                        break;
+
+
+                    case "UP":
+                        sendKey("UP");
+                        break;
+
+
+                    case "DOWN":
+                        sendKey("DOWN");
+                        break;
+
+
+                    case "LEFT":
+                        sendKey("LEFT");
+                        break;
+
+
+                    case "RIGHT":
+                        sendKey("RIGHT");
+                        break;
+
+                }
+
+
+            }
+        );
+
+
+    }
+    catch(error){
+
+
+        console.error(
+            "Controller failed:",
+            error
+        );
+
 
     }
 
-
-
-    controller.on(
-        "down",
-        function(button){
-
-            console.log(
-                "Button:",
-                button
-            );
-
-
-            switch(button){
-
-
-                case "A":
-                    sendKey("ENTER");
-                    break;
-
-
-                case "B":
-                    sendKey("ESC");
-                    break;
-
-
-                case "X":
-                    sendKey("S");
-                    break;
-
-
-                case "Y":
-                    sendKey("HOME");
-                    break;
-
-
-                case "UP":
-                    sendKey("UP");
-                    break;
-
-
-                case "DOWN":
-                    sendKey("DOWN");
-                    break;
-
-
-                case "LEFT":
-                    sendKey("LEFT");
-                    break;
-
-
-                case "RIGHT":
-                    sendKey("RIGHT");
-                    break;
-
-
-                case "START":
-                    sendKey("SPACE");
-                    break;
-
-            }
-
-        }
-    );
 
 };

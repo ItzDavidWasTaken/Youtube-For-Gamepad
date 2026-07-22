@@ -44,6 +44,16 @@ function createWindow() {
 
 }
 
+mainWindow.webContents.on(
+    "did-finish-load",
+    ()=>{
+
+        require("./controller")(
+            mainWindow
+        );
+
+    }
+);
 
 app.whenReady().then(async () => {
 
