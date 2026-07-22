@@ -1,13 +1,16 @@
 const {
     app,
     BrowserWindow,
-    ipcMain
+    session
 } = require("electron");
 
 const path = require("path");
 
-
 let mainWindow;
+
+
+const TV_USER_AGENT =
+    "Mozilla/5.0 (SMART-TV; Linux; Tizen 7.0) AppleWebKit/537.36 (KHTML, like Gecko) Version/7.0 TV Safari/537.36";
 
 
 function createWindow() {
@@ -22,57 +25,48 @@ function createWindow() {
 
         autoHideMenuBar: true,
 
-        backgroundColor: "#000000",
-
         webPreferences: {
-
-            preload: path.join(
-                __dirname,
-                "overlay.js"
-            ),
-
-            nodeIntegration: false,
-            contextIsolation: false
-
+            contextIsolation: true,
+            nodeIntegration: false
         }
 
     });
+
+
+    mainWindow.webContents.setUserAgent(
+        TV_USER_AGENT
+    );
 
 
     mainWindow.loadURL(
         "https://www.youtube.com/tv"
     );
 
+}
 
-    mainWindow.on(
-        "closed",
-        () => {
-            mainWindow = null;
+
+app.whenReady().then(async () => {
+
+
+    await session.defaultSession.clearCache();
+
+
+    session.defaultSession.webRequest.onBeforeSendHeaders(
+        (details, callback) => {
+
+            details.requestHeaders["User-Agent"] =
+                TV_USER_AGENT;
+
+
+            callback({
+                requestHeaders:
+                    details.requestHeaders
+            });
+
         }
     );
 
 
-    //require("./controller")(
-    //    mainWindow
-    //);
-
-}
-
-
-
-app.whenReady().then(()=>{
-
     createWindow();
 
 });
-
-
-app.on(
-    "window-all-closed",
-    ()=>{
-
-        if(process.platform !== "darwin")
-            app.quit();
-
-    }
-);
