@@ -110,12 +110,6 @@ function executeMediaAction(action){
 
     const scripts = {
 
-        VOLUME_DOWN:
-        `(()=>{const v=document.querySelector("video");if(v)v.volume=Math.max(0,v.volume-0.1);})()`,
-
-        VOLUME_UP:
-        `(()=>{const v=document.querySelector("video");if(v)v.volume=Math.min(1,v.volume+0.1);})()`,
-
         SKIP_BACK:
         `(()=>{const v=document.querySelector("video");if(v)v.currentTime=Math.max(0,v.currentTime-10);})()`,
 
@@ -209,11 +203,6 @@ ipcMain.on(
             break;
 
 
-        case "SEARCH":
-            sendKey("/");
-            break;
-
-
         case "MENU":
             openMenu();
             break;
@@ -225,49 +214,39 @@ ipcMain.on(
 
 
         case "BACKSPACE":
-            sendKey("BACKSPACE");
+            sendKey("Backspace");
             break;
 
 
         case "CLEAR":
             sendKey("A", ["control"]);
-            sendKey("BACKSPACE");
+            sendKey("Backspace");
             break;
 
 
         case "UP":
-            sendKey("ARROWUP");
+            sendKey("Up");
             break;
 
 
         case "DOWN":
-            sendKey("ARROWDOWN");
+            sendKey("Down");
             break;
 
 
         case "LEFT":
-            sendKey("ARROWLEFT");
+            sendKey("Left");
             break;
 
 
         case "RIGHT":
-            sendKey("ARROWRIGHT");
+            sendKey("Right");
             break;
 
 
         case "PAUSE":
         case "PLAY":
             sendKey("SPACE");
-            break;
-
-
-        case "VOLUME_DOWN":
-            executeMediaAction(action);
-            break;
-
-
-        case "VOLUME_UP":
-            executeMediaAction(action);
             break;
 
 

@@ -11,7 +11,7 @@ let controllerConnected = false;
 
 
 let previousButtons = [];
-let previousAxes = [];
+let previousAxes = [0, 0];
 let lastAxisActionTime = 0;
 
 
@@ -81,7 +81,6 @@ function getAction(button){
         HOME:{
             0:"SELECT",
             1:"BACK",
-            3:"SEARCH",
             9:"MENU",
             12:"UP",
             13:"DOWN",
@@ -94,8 +93,6 @@ function getAction(button){
             0:"SELECT",
             1:"BACK",
             3:"HIDE_CONTROLS",
-            6:"VOLUME_DOWN",
-            7:"VOLUME_UP",
             4:"SKIP_BACK",
             5:"SKIP_FORWARD",
             9:"PAUSE",
@@ -146,7 +143,7 @@ function handleAxes(pad){
     if(
         action &&
         (
-            previousAxes[0] === 0 && previousAxes[1] === 0 ||
+            Math.abs(previousAxes[0]) < deadZone && Math.abs(previousAxes[1]) < deadZone ||
             now - lastAxisActionTime >= repeatDelay
         )
     ){
@@ -232,7 +229,7 @@ b=>b.pressed
 
     controllerConnected=false;
     previousButtons=[];
-    previousAxes=[];
+            previousAxes=[0,0];
     lastAxisActionTime=0;
     window.controllerAPI?.sendStatus("disconnected");
 
