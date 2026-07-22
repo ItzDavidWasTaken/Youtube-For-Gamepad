@@ -2,7 +2,8 @@ const {
     app,
     BrowserWindow,
     session,
-    ipcMain
+    ipcMain,
+    screen
 } = require("electron");
 
 const path = require("path");
@@ -13,10 +14,8 @@ let mainWindow;
 let overlayWindow;
 
 
-
 const TV_USER_AGENT =
 "Mozilla/5.0 (SMART-TV; Linux; Tizen 7.0) AppleWebKit/537.36 (KHTML, like Gecko) Version/7.0 TV Safari/537.36";
-
 
 
 const logFile = path.join(
@@ -28,15 +27,14 @@ const logFile = path.join(
 
 function log(...msg){
 
-    try {
+    try{
 
         fs.appendFileSync(
             logFile,
             `[${new Date().toISOString()}] ${msg.join(" ")}\n`
         );
 
-    } catch(e){}
-
+    }catch{}
 
     console.log(...msg);
 
@@ -44,9 +42,7 @@ function log(...msg){
 
 
 
-
 function sendKey(key){
-
 
     if(!mainWindow)
         return;
@@ -71,7 +67,6 @@ function sendKey(key){
 
     },50);
 
-
 }
 
 
@@ -84,54 +79,75 @@ ipcMain.on(
 
 
         log(
-            "Controller:",
+            "Controller action:",
             action
         );
 
 
-
         switch(action){
-
 
             case "UP":
                 sendKey("UP");
                 break;
 
-
             case "DOWN":
                 sendKey("DOWN");
                 break;
-
 
             case "LEFT":
                 sendKey("LEFT");
                 break;
 
-
             case "RIGHT":
                 sendKey("RIGHT");
                 break;
-
 
             case "SELECT":
                 sendKey("ENTER");
                 break;
 
-
             case "BACK":
                 sendKey("ESC");
                 break;
-
 
             case "PLAY":
                 sendKey("SPACE");
                 break;
 
+        }
 
-            case "HOME":
-                sendKey("HOME");
-                break;
+    }
+);
 
+
+
+
+
+ipcMain.on(
+    "controller-status",
+    (event,status)=>{
+
+
+        log(
+            "Controller status:",
+            status
+        );
+
+
+        if(!overlayWindow)
+            return;
+
+
+        if(status === "connected"){
+
+            overlayWindow.show();
+
+        }
+
+
+        if(status === "disconnected"){
+
+            overlayWindow.hide();
 
         }
 
@@ -150,18 +166,20 @@ function createOverlay(){
     overlayWindow =
     new BrowserWindow({
 
-        width:600,
-        height:180,
-
-        transparent:true,
+        width:900,
+        height:120,
 
         frame:false,
+
+        transparent:true,
 
         alwaysOnTop:true,
 
         skipTaskbar:true,
 
         focusable:false,
+
+        show:false,
 
 
         webPreferences:{
@@ -192,13 +210,36 @@ function createOverlay(){
     );
 
 
+
+    const display =
+        screen.getPrimaryDisplay();
+
+
+    const bounds =
+        display.bounds;
+
+
+    overlayWindow.setPosition(
+
+        Math.round(
+            bounds.x +
+            (bounds.width - 900) / 2
+        ),
+
+        bounds.height - 160
+
+    );
+
+
+
     overlayWindow.loadFile(
         "overlay.html"
     );
 
 
+
     log(
-        "Overlay loaded"
+        "Overlay created"
     );
 
 
@@ -210,19 +251,15 @@ function createOverlay(){
 
 
 
+
 function createWindow(){
-
-
-    log(
-        "Creating main window"
-    );
-
 
 
     mainWindow =
     new BrowserWindow({
 
         width:1920,
+
         height:1080,
 
         fullscreen:true,
@@ -249,24 +286,15 @@ function createWindow(){
 
 
 
-
     mainWindow.webContents.setUserAgent(
         TV_USER_AGENT
     );
 
 
 
-
-    log(
-        "Loading YouTube TV"
-    );
-
-
     mainWindow.loadURL(
         "https://www.youtube.com/tv"
     );
-
-
 
 
 
@@ -280,41 +308,16 @@ function createWindow(){
             );
 
 
-
             createOverlay();
 
 
-
-            try {
-
-
-                require("./controller")(
-                    mainWindow
-                );
-
-
-                log(
-                    "Controller loaded"
-                );
-
-
-            }
-            catch(error){
-
-
-                log(
-                    "Controller error:",
-                    error.stack
-                );
-
-
-            }
+            require("./controller")(
+                mainWindow
+            );
 
 
         }
     );
-
-
 
 
 
@@ -323,9 +326,13 @@ function createWindow(){
         ()=>{
 
 
-            log(
-                "Main window closed"
-            );
+            if(overlayWindow){
+
+                overlayWindow.close();
+
+                overlayWindow=null;
+
+            }
 
 
             mainWindow=null;
@@ -335,9 +342,7 @@ function createWindow(){
     );
 
 
-
 }
-
 
 
 
@@ -353,13 +358,12 @@ app.whenReady().then(async()=>{
     );
 
 
-
     await session.defaultSession.clearCache();
 
 
 
     session.defaultSession.webRequest.onBeforeSendHeaders(
-        (details, callback)=>{
+        (details,callback)=>{
 
 
             details.requestHeaders[
@@ -385,11 +389,7 @@ app.whenReady().then(async()=>{
     createWindow();
 
 
-
 });
-
-
-
 
 
 
@@ -397,11 +397,6 @@ app.whenReady().then(async()=>{
 app.on(
     "window-all-closed",
     ()=>{
-
-
-        log(
-            "Windows closed"
-        );
 
 
         if(process.platform !== "darwin")

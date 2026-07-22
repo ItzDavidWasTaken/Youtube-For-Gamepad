@@ -4,6 +4,7 @@ const {
 } = require("electron");
 
 
+
 contextBridge.exposeInMainWorld(
     "controllerAPI",
     {
@@ -19,11 +20,11 @@ contextBridge.exposeInMainWorld(
         },
 
 
-        showOverlay:(data)=>{
+        sendStatus:(status)=>{
 
             ipcRenderer.send(
-                "show-overlay",
-                data
+                "controller-status",
+                status
             );
 
         }

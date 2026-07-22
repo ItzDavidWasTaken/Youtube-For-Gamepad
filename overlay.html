@@ -6,32 +6,38 @@
 
 <style>
 
-body{
+html,body{
+
+margin:0;
+
+padding:0;
 
 background:transparent;
+
 overflow:hidden;
-font-family:Arial;
+
+font-family:Arial, sans-serif;
 
 }
 
 
-#box{
+#controls{
 
-position:absolute;
-bottom:40px;
-left:40px;
 
-background:rgba(0,0,0,.7);
+background:rgba(0,0,0,0.75);
 
 color:white;
 
-padding:20px;
+padding:14px 35px;
 
-border-radius:10px;
+border-radius:14px;
 
 font-size:24px;
 
+text-align:center;
+
 }
+
 
 </style>
 
@@ -41,22 +47,24 @@ font-size:24px;
 <body>
 
 
-<div id="box">
+<div id="controls">
 
-🎮 Controller Ready
+⬆⬇⬅➡ Navigate
 
-<br>
+&nbsp;&nbsp;
 
-A Select | B Back
+A Select
 
-<br>
+&nbsp;&nbsp;
+
+B Back
+
+&nbsp;&nbsp;
 
 Start Play/Pause
 
+
 </div>
-
-
-<script src="overlay.js"></script>
 
 
 </body>

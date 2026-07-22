@@ -1,7 +1,5 @@
 module.exports = function(win){
 
-    console.log("Controller started");
-
 
     win.webContents.executeJavaScript(`
 
@@ -12,128 +10,20 @@ module.exports = function(win){
 
         let lastMove = 0;
 
+        let hadController = false;
+
+
         const MOVE_DELAY = 180;
 
 
-        function press(action){
 
-            window.controllerAPI.sendAction(action);
+        function send(action){
 
-        }
-
-
-
-        function buttonPressed(index){
-
-            const pads =
-                navigator.getGamepads();
-
-
-            const pad =
-                pads[0];
-
-
-            if(!pad)
-                return false;
-
-
-            return pad.buttons[index]?.pressed;
+            window.controllerAPI.sendAction(
+                action
+            );
 
         }
-
-
-
-        function handleButton(index, action){
-
-
-            if(
-                buttonPressed(index) &&
-                !previousButtons[index]
-            ){
-
-                press(action);
-
-            }
-
-
-        }
-
-
-
-        function handleStick(){
-
-
-            const pads =
-                navigator.getGamepads();
-
-
-            const pad =
-                pads[0];
-
-
-            if(!pad)
-                return;
-
-
-            const now =
-                Date.now();
-
-
-            if(
-                now - lastMove < MOVE_DELAY
-            )
-                return;
-
-
-
-            const DEADZONE = 0.65;
-
-
-            let x =
-                pad.axes[0];
-
-
-            let y =
-                pad.axes[1];
-
-
-
-            if(Math.abs(x) > DEADZONE){
-
-
-                lastMove = now;
-
-
-                if(x < 0)
-                    press("LEFT");
-                else
-                    press("RIGHT");
-
-
-                return;
-
-            }
-
-
-
-            if(Math.abs(y) > DEADZONE){
-
-
-                lastMove = now;
-
-
-                if(y < 0)
-                    press("UP");
-                else
-                    press("DOWN");
-
-
-            }
-
-
-        }
-
-
 
 
 
@@ -149,54 +39,100 @@ module.exports = function(win){
 
 
 
+            const connected =
+                pad !== null;
+
+
+
+            if(
+                connected &&
+                !hadController
+            ){
+
+                window.controllerAPI.sendStatus(
+                    "connected"
+                );
+
+            }
+
+
+
+            if(
+                !connected &&
+                hadController
+            ){
+
+                window.controllerAPI.sendStatus(
+                    "disconnected"
+                );
+
+            }
+
+
+
+            hadController =
+                connected;
+
+
+
             if(pad){
 
 
 
-                // A
-                handleButton(
-                    0,
-                    "SELECT"
-                );
+                pad.buttons.forEach(
+                    (button,index)=>{
 
 
-                // B
-                handleButton(
-                    1,
-                    "BACK"
-                );
+                        if(
+                            button.pressed &&
+                            !previousButtons[index]
+                        ){
 
 
-                // Start
-                handleButton(
-                    9,
-                    "PLAY"
-                );
+                            switch(index){
 
 
-
-                // D-pad
-                handleButton(
-                    12,
-                    "UP"
-                );
+                                case 0:
+                                    send("SELECT");
+                                    break;
 
 
-                handleButton(
-                    13,
-                    "DOWN"
-                );
+                                case 1:
+                                    send("BACK");
+                                    break;
 
 
-                handleButton(
-                    14,
-                    "LEFT"
-                );
+                                case 9:
+                                    send("PLAY");
+                                    break;
 
 
-                handleButton(
-                    15,
-                    "RIGHT"
+                                case 12:
+                                    send("UP");
+                                    break;
+
+
+                                case 13:
+                                    send("DOWN");
+                                    break;
+
+
+                                case 14:
+                                    send("LEFT");
+                                    break;
+
+
+                                case 15:
+                                    send("RIGHT");
+                                    break;
+
+
+                            }
+
+                        }
+
+
+                    }
                 );
 
 
@@ -208,7 +144,62 @@ module.exports = function(win){
 
 
 
-                handleStick();
+
+                const now =
+                    Date.now();
+
+
+                if(
+                    now-lastMove >
+                    MOVE_DELAY
+                ){
+
+
+                    const x =
+                        pad.axes[0];
+
+
+                    const y =
+                        pad.axes[1];
+
+
+                    if(x < -0.65){
+
+                        send("LEFT");
+
+                        lastMove=now;
+
+                    }
+
+
+                    if(x > 0.65){
+
+                        send("RIGHT");
+
+                        lastMove=now;
+
+                    }
+
+
+                    if(y < -0.65){
+
+                        send("UP");
+
+                        lastMove=now;
+
+                    }
+
+
+                    if(y > 0.65){
+
+                        send("DOWN");
+
+                        lastMove=now;
+
+                    }
+
+
+                }
 
 
             }
@@ -227,10 +218,9 @@ module.exports = function(win){
         poll();
 
 
-
     })();
 
-
     `);
+
 
 };
