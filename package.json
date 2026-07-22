@@ -6,9 +6,9 @@
   "author": "You",
   "scripts": {
     "start": "electron .",
-    "build": "electron-builder",
-    "build:win": "electron-builder --win portable",
-    "build:linux": "electron-builder --linux AppImage"
+    "build": "electron-builder --publish-never",
+    "build:win": "electron-builder --win portable --publish-never",
+    "build:linux": "electron-builder --linux AppImage --publish-never"
   },
   "devDependencies": {
     "electron": "^37.0.0",
