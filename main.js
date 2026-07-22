@@ -20,7 +20,7 @@ let playbackOverlayWatcher = null;
 
 
 const TV_USER_AGENT =
-"Mozilla/5.0 (SMART-TV; Linux; Tizen 7.0) AppleWebKit/537.36 (KHTML, like Gecko) Version/7.0 TV Safari/537.36";
+"Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36";
 
 
 
@@ -725,7 +725,7 @@ function createWindow(){
 
         const overlayHeight =
             Math.round(
-                60 * Math.max(
+                72 * Math.max(
                     1,
                     screen.getPrimaryDisplay().bounds.width / 1920
                 )
@@ -733,7 +733,7 @@ function createWindow(){
 
 
         mainWindow.webContents.insertCSS(
-            `body { padding-bottom: ${overlayHeight}px !important; box-sizing: border-box !important; } * { cursor: none !important; pointer-events: none !important; }`
+            `body { padding-bottom: ${overlayHeight}px !important; box-sizing: border-box !important; } * { cursor: none !important; pointer-events: none !important; } .ytp-autohide .ytp-chrome-bottom, .ytp-autohide .ytp-chrome-controls, .ytp-autohide .ytp-progress-bar-container, .ytp-autohide [class*='PlayerControls'], .ytp-autohide [class*='player-controls'], [class*='PlaybackControls'][aria-hidden='true'], [class*='playback-controls'][aria-hidden='true'] { opacity: 1 !important; visibility: visible !important; display: flex !important; }`
         );
 
 
