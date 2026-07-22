@@ -1,8 +1,7 @@
 setTimeout(()=>{
 
-document.getElementById(
-"help"
-).style.display="none";
+    document
+    .getElementById("box")
+    .style.opacity = "0.8";
 
-
-},5000);
+},1000);

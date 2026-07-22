@@ -1,42 +1,123 @@
-module.exports = function(win) {
-
-    console.log("Controller test loaded");
-
-    if (!win) {
-        console.log("No window");
-        return;
-    }
+module.exports = function(win){
 
 
-    try {
-
-        const Gamepad =
-            require("node-gamepad");
-
-        console.log("node-gamepad loaded");
+    console.log(
+        "Controller started"
+    );
 
 
-        const controller =
-            new Gamepad("xbox360");
+    win.webContents.executeJavaScript(`
 
 
-        console.log("controller object created");
+        (()=>{
 
 
-        controller.connect();
+            let previous = [];
 
 
-        console.log("controller connected");
+            function press(action){
+
+                window.controllerAPI.sendAction(
+                    action
+                );
+
+            }
 
 
-    }
-    catch(error) {
 
-        console.log(
-            "Controller error:",
-            error.message
-        );
+            function poll(){
 
-    }
+
+                let pads =
+                    navigator.getGamepads();
+
+
+                let pad =
+                    pads[0];
+
+
+                if(pad){
+
+
+                    pad.buttons.forEach(
+                        (button,index)=>{
+
+
+                            if(
+                                button.pressed &&
+                                !previous[index]
+                            ){
+
+
+                                switch(index){
+
+
+                                    case 0:
+                                        press("SELECT");
+                                        break;
+
+
+                                    case 1:
+                                        press("BACK");
+                                        break;
+
+
+                                    case 9:
+                                        press("PLAY");
+                                        break;
+
+
+                                }
+
+
+                            }
+
+
+                            previous[index] =
+                                button.pressed;
+
+
+                        }
+                    );
+
+
+                    let x =
+                        pad.axes[0];
+
+                    let y =
+                        pad.axes[1];
+
+
+                    if(x < -0.8)
+                        press("LEFT");
+
+                    if(x > 0.8)
+                        press("RIGHT");
+
+                    if(y < -0.8)
+                        press("UP");
+
+                    if(y > 0.8)
+                        press("DOWN");
+
+
+                }
+
+
+                requestAnimationFrame(
+                    poll
+                );
+
+
+            }
+
+
+            poll();
+
+
+        })();
+
+
+    `);
 
 };

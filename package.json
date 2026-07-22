@@ -1,25 +1,23 @@
 {
   "name": "youtube-tv-app",
-  "version": "0.1.0",
-  "description": "Controller friendly YouTube TV app",
+  "version": "1.0.0",
+  "description": "YouTube TV Desktop App with Controller Support",
   "main": "main.js",
+  "author": "You",
   "scripts": {
     "start": "electron .",
     "build": "electron-builder --win portable"
   },
   "devDependencies": {
-    "electron": "^37.10.3",
-    "electron-builder": "^26.15.3",
-    "electron-rebuild": "^3.2.9"
+    "electron": "^37.0.0",
+    "electron-builder": "^26.0.0"
   },
   "build": {
-    "appId": "com.youtube.tv.app",
+    "appId": "com.youtube.tvapp",
     "productName": "YouTube TV",
+    "icon": "assets/icon.ico",
     "win": {
       "target": "portable"
     }
-  },
-  "dependencies": {
-    "node-gamepad": "^0.1.15"
   }
 }

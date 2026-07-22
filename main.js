@@ -1,95 +1,120 @@
 const {
     app,
     BrowserWindow,
-    session
+    BrowserView,
+    session,
+    ipcMain
 } = require("electron");
 
-const fs = require("fs");
 const path = require("path");
+const fs = require("fs");
 
 
 let mainWindow;
 
 
-// Log file location
+const TV_USER_AGENT =
+"Mozilla/5.0 (SMART-TV; Linux; Tizen 7.0) AppleWebKit/537.36 (KHTML, like Gecko) Version/7.0 TV Safari/537.36";
+
+
 const logFile = path.join(
     app.getPath("userData"),
     "youtube-tv-debug.log"
 );
 
 
-function log(...args) {
+function log(...msg){
 
-    const message =
-        `[${new Date().toISOString()}] `
-        + args.join(" ")
-        + "\n";
-
-
-    try {
-
-        fs.appendFileSync(
-            logFile,
-            message
-        );
-
-    }
-    catch(e) {
-
-        console.error(
-            "Could not write log:",
-            e
-        );
-
-    }
-
-
-    console.log(
-        ...args
+    fs.appendFileSync(
+        logFile,
+        `[${new Date().toISOString()}] ${msg.join(" ")}\n`
     );
 
 }
 
 
 
-process.on(
-    "uncaughtException",
-    (error)=>{
+function sendKey(key){
+
+    if(!mainWindow) return;
+
+
+    mainWindow.webContents.sendInputEvent({
+
+        type:"keyDown",
+        keyCode:key
+
+    });
+
+
+    setTimeout(()=>{
+
+        mainWindow.webContents.sendInputEvent({
+
+            type:"keyUp",
+            keyCode:key
+
+        });
+
+    },50);
+
+}
+
+
+
+ipcMain.on(
+    "controller-action",
+    (event, action)=>{
+
 
         log(
-            "UNCAUGHT EXCEPTION:",
-            error.stack
+            "Controller:",
+            action
         );
+
+
+        switch(action){
+
+            case "UP":
+                sendKey("UP");
+                break;
+
+            case "DOWN":
+                sendKey("DOWN");
+                break;
+
+            case "LEFT":
+                sendKey("LEFT");
+                break;
+
+            case "RIGHT":
+                sendKey("RIGHT");
+                break;
+
+            case "SELECT":
+                sendKey("ENTER");
+                break;
+
+            case "BACK":
+                sendKey("ESC");
+                break;
+
+            case "PLAY":
+                sendKey("SPACE");
+                break;
+
+            case "HOME":
+                sendKey("HOME");
+                break;
+
+        }
 
     }
 );
 
 
-process.on(
-    "unhandledRejection",
-    (error)=>{
 
-        log(
-            "UNHANDLED REJECTION:",
-            error.stack || error
-        );
-
-    }
-);
-
-
-
-const TV_USER_AGENT =
-    "Mozilla/5.0 (SMART-TV; Linux; Tizen 7.0) AppleWebKit/537.36 (KHTML, like Gecko) Version/7.0 TV Safari/537.36";
-
-
-
-function createWindow() {
-
-
-    log(
-        "Creating window"
-    );
+function createWindow(){
 
 
     mainWindow = new BrowserWindow({
@@ -102,9 +127,12 @@ function createWindow() {
 
         autoHideMenuBar:true,
 
-        backgroundColor:"#000000",
-
         webPreferences:{
+
+            preload:path.join(
+                __dirname,
+                "preload.js"
+            ),
 
             contextIsolation:true,
             nodeIntegration:false
@@ -120,11 +148,6 @@ function createWindow() {
     );
 
 
-    log(
-        "Loading YouTube TV"
-    );
-
-
     mainWindow.loadURL(
         "https://www.youtube.com/tv"
     );
@@ -132,79 +155,31 @@ function createWindow() {
 
 
     mainWindow.webContents.on(
-    "did-finish-load",
-    ()=>{
-
-
-        log(
-            "YouTube TV loaded"
-        );
-
-
-        setTimeout(()=>{
-
-
-            try {
-
-
-                log(
-                    "Starting controller"
-                );
-
-
-                require("./controller")(
-                    mainWindow
-                );
-
-
-                log(
-                    "Controller started"
-                );
-
-
-            }
-            catch(error) {
-
-
-                log(
-                    "Controller failed:",
-                    error.stack
-                );
-
-
-            }
-
-
-        }, 5000);
-
-
-    }
-);
-
-
-    mainWindow.on(
-        "closed",
+        "did-finish-load",
         ()=>{
 
             log(
-                "Window closed"
+                "YouTube loaded"
             );
 
-            mainWindow = null;
+
+            require("./controller")(
+                mainWindow
+            );
+
 
         }
     );
-
 
 }
 
 
 
-app.whenReady().then(async ()=>{
+app.whenReady().then(async()=>{
 
 
     log(
-        "Application starting"
+        "Starting"
     );
 
 
@@ -212,7 +187,7 @@ app.whenReady().then(async ()=>{
 
 
     session.defaultSession.webRequest.onBeforeSendHeaders(
-        (details, callback)=>{
+        (details,callback)=>{
 
 
             details.requestHeaders[
@@ -221,12 +196,9 @@ app.whenReady().then(async ()=>{
 
 
             callback({
-
                 requestHeaders:
                     details.requestHeaders
-
             });
-
 
         }
     );
@@ -236,25 +208,3 @@ app.whenReady().then(async ()=>{
 
 
 });
-
-
-
-app.on(
-    "window-all-closed",
-    ()=>{
-
-
-        log(
-            "All windows closed"
-        );
-
-
-        if(process.platform !== "darwin") {
-
-            app.quit();
-
-        }
-
-
-    }
-);
