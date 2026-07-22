@@ -1,7 +1,6 @@
 const {
     app,
     BrowserWindow,
-    BrowserView,
     session,
     ipcMain
 } = require("electron");
@@ -11,10 +10,13 @@ const fs = require("fs");
 
 
 let mainWindow;
+let overlayWindow;
+
 
 
 const TV_USER_AGENT =
 "Mozilla/5.0 (SMART-TV; Linux; Tizen 7.0) AppleWebKit/537.36 (KHTML, like Gecko) Version/7.0 TV Safari/537.36";
+
 
 
 const logFile = path.join(
@@ -23,20 +25,31 @@ const logFile = path.join(
 );
 
 
+
 function log(...msg){
 
-    fs.appendFileSync(
-        logFile,
-        `[${new Date().toISOString()}] ${msg.join(" ")}\n`
-    );
+    try {
+
+        fs.appendFileSync(
+            logFile,
+            `[${new Date().toISOString()}] ${msg.join(" ")}\n`
+        );
+
+    } catch(e){}
+
+
+    console.log(...msg);
 
 }
 
 
 
+
 function sendKey(key){
 
-    if(!mainWindow) return;
+
+    if(!mainWindow)
+        return;
 
 
     mainWindow.webContents.sendInputEvent({
@@ -58,7 +71,10 @@ function sendKey(key){
 
     },50);
 
+
 }
+
+
 
 
 
@@ -73,59 +89,80 @@ ipcMain.on(
         );
 
 
+
         switch(action){
+
 
             case "UP":
                 sendKey("UP");
                 break;
 
+
             case "DOWN":
                 sendKey("DOWN");
                 break;
+
 
             case "LEFT":
                 sendKey("LEFT");
                 break;
 
+
             case "RIGHT":
                 sendKey("RIGHT");
                 break;
+
 
             case "SELECT":
                 sendKey("ENTER");
                 break;
 
+
             case "BACK":
                 sendKey("ESC");
                 break;
+
 
             case "PLAY":
                 sendKey("SPACE");
                 break;
 
+
             case "HOME":
                 sendKey("HOME");
                 break;
 
+
         }
+
 
     }
 );
 
 
 
-function createWindow(){
 
 
-    mainWindow = new BrowserWindow({
 
-        width:1920,
-        height:1080,
+function createOverlay(){
 
-        fullscreen:true,
-        kiosk:true,
 
-        autoHideMenuBar:true,
+    overlayWindow =
+    new BrowserWindow({
+
+        width:600,
+        height:180,
+
+        transparent:true,
+
+        frame:false,
+
+        alwaysOnTop:true,
+
+        skipTaskbar:true,
+
+        focusable:false,
+
 
         webPreferences:{
 
@@ -135,6 +172,7 @@ function createWindow(){
             ),
 
             contextIsolation:true,
+
             nodeIntegration:false
 
         }
@@ -143,8 +181,84 @@ function createWindow(){
 
 
 
+    overlayWindow.setIgnoreMouseEvents(
+        true
+    );
+
+
+    overlayWindow.setAlwaysOnTop(
+        true,
+        "screen-saver"
+    );
+
+
+    overlayWindow.loadFile(
+        "overlay.html"
+    );
+
+
+    log(
+        "Overlay loaded"
+    );
+
+
+}
+
+
+
+
+
+
+
+function createWindow(){
+
+
+    log(
+        "Creating main window"
+    );
+
+
+
+    mainWindow =
+    new BrowserWindow({
+
+        width:1920,
+        height:1080,
+
+        fullscreen:true,
+
+        kiosk:true,
+
+        autoHideMenuBar:true,
+
+
+        webPreferences:{
+
+            preload:path.join(
+                __dirname,
+                "preload.js"
+            ),
+
+            contextIsolation:true,
+
+            nodeIntegration:false
+
+        }
+
+    });
+
+
+
+
     mainWindow.webContents.setUserAgent(
         TV_USER_AGENT
+    );
+
+
+
+
+    log(
+        "Loading YouTube TV"
     );
 
 
@@ -154,24 +268,80 @@ function createWindow(){
 
 
 
+
+
     mainWindow.webContents.on(
         "did-finish-load",
         ()=>{
 
+
             log(
-                "YouTube loaded"
+                "YouTube TV loaded"
             );
 
 
-            require("./controller")(
-                mainWindow
-            );
+
+            createOverlay();
+
+
+
+            try {
+
+
+                require("./controller")(
+                    mainWindow
+                );
+
+
+                log(
+                    "Controller loaded"
+                );
+
+
+            }
+            catch(error){
+
+
+                log(
+                    "Controller error:",
+                    error.stack
+                );
+
+
+            }
 
 
         }
     );
 
+
+
+
+
+    mainWindow.on(
+        "closed",
+        ()=>{
+
+
+            log(
+                "Main window closed"
+            );
+
+
+            mainWindow=null;
+
+
+        }
+    );
+
+
+
 }
+
+
+
+
+
 
 
 
@@ -179,32 +349,64 @@ app.whenReady().then(async()=>{
 
 
     log(
-        "Starting"
+        "Application starting"
     );
+
 
 
     await session.defaultSession.clearCache();
 
 
+
     session.defaultSession.webRequest.onBeforeSendHeaders(
-        (details,callback)=>{
+        (details, callback)=>{
 
 
             details.requestHeaders[
                 "User-Agent"
-            ] = TV_USER_AGENT;
+            ] =
+            TV_USER_AGENT;
+
 
 
             callback({
+
                 requestHeaders:
                     details.requestHeaders
+
             });
+
 
         }
     );
 
 
+
     createWindow();
 
 
+
 });
+
+
+
+
+
+
+
+app.on(
+    "window-all-closed",
+    ()=>{
+
+
+        log(
+            "Windows closed"
+        );
+
+
+        if(process.platform !== "darwin")
+            app.quit();
+
+
+    }
+);
