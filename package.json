@@ -1,14 +1,14 @@
 {
   "name": "Youtube-For-Gamepad",
-  "version": "2.0.2",
+  "version": "2.0.3",
   "description": "YouTube Desktop App with Controller Support",
   "main": "main.js",
   "author": "You",
   "scripts": {
     "start": "electron .",
-    "build": "electron-builder --publish-never",
-    "build:win": "electron-builder --win portable --publish-never",
-    "build:linux": "electron-builder --linux AppImage --publish-never"
+    "build": "electron-builder --publish never",
+    "build:win": "electron-builder --win portable --publish never",
+    "build:linux": "electron-builder --linux AppImage --publish never"
   },
   "devDependencies": {
     "electron": "^37.0.0",
