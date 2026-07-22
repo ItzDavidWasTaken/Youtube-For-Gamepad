@@ -99,6 +99,85 @@ function sendKey(key, modifiers=[]){
 
 
 
+function executeMediaAction(action){
+
+    if(
+        !mainWindow ||
+        mainWindow.isDestroyed()
+    )
+        return;
+
+
+    const scripts = {
+
+        VOLUME_DOWN:
+        `(()=>{const v=document.querySelector("video");if(v)v.volume=Math.max(0,v.volume-0.1);})()`,
+
+        VOLUME_UP:
+        `(()=>{const v=document.querySelector("video");if(v)v.volume=Math.min(1,v.volume+0.1);})()`,
+
+        SKIP_BACK:
+        `(()=>{const v=document.querySelector("video");if(v)v.currentTime=Math.max(0,v.currentTime-10);})()`,
+
+        SKIP_FORWARD:
+        `(()=>{const v=document.querySelector("video");if(v)v.currentTime=Math.min(v.duration,v.currentTime+10);})()`,
+
+        HIDE_CONTROLS:
+        `(()=>{document.activeElement?.blur();document.body?.click();})()`
+
+    };
+
+
+    const script = scripts[action];
+
+
+    if(script){
+
+        mainWindow.webContents.executeJavaScript(script).catch(
+            error=>log("Media action failed:", action, error.message)
+        );
+
+    }
+
+}
+
+
+
+function openMenu(){
+
+    if(
+        !mainWindow ||
+        mainWindow.isDestroyed()
+    )
+        return;
+
+
+    mainWindow.webContents.executeJavaScript(`
+        (()=>{
+            const menu = document.querySelector(
+                '[aria-label*="Menu" i], [title*="Menu" i], button[aria-label*="Guide" i]'
+            );
+            if(menu){ menu.click(); return true; }
+            return false;
+        })()
+    `).then(
+        opened=>{
+
+            if(!opened){
+
+                sendKey("M");
+
+            }
+
+        }
+    ).catch(
+        ()=>sendKey("M")
+    );
+
+}
+
+
+
 
 
 
@@ -136,12 +215,12 @@ ipcMain.on(
 
 
         case "MENU":
-            sendKey("M");
+            openMenu();
             break;
 
 
         case "HIDE_CONTROLS":
-            sendKey("ESC");
+            executeMediaAction(action);
             break;
 
 
@@ -183,22 +262,22 @@ ipcMain.on(
 
 
         case "VOLUME_DOWN":
-            sendKey("ARROWDOWN");
+            executeMediaAction(action);
             break;
 
 
         case "VOLUME_UP":
-            sendKey("ARROWUP");
+            executeMediaAction(action);
             break;
 
 
         case "SKIP_BACK":
-            sendKey("ARROWLEFT");
+            executeMediaAction(action);
             break;
 
 
         case "SKIP_FORWARD":
-            sendKey("ARROWRIGHT");
+            executeMediaAction(action);
             break;
 
 

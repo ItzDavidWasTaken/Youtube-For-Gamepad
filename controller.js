@@ -11,6 +11,8 @@ let controllerConnected = false;
 
 
 let previousButtons = [];
+let previousAxes = [];
+let lastAxisActionTime = 0;
 
 
 
@@ -120,6 +122,47 @@ function getAction(button){
 
 
 
+function handleAxes(pad){
+
+    const now = Date.now();
+    const axisX = pad.axes[0] || 0;
+    const axisY = pad.axes[1] || 0;
+    const deadZone = 0.5;
+    const repeatDelay = 180;
+    let action = null;
+
+
+    if(Math.abs(axisX) >= deadZone){
+
+        action = axisX < 0 ? "LEFT" : "RIGHT";
+
+    }else if(Math.abs(axisY) >= deadZone){
+
+        action = axisY < 0 ? "UP" : "DOWN";
+
+    }
+
+
+    if(
+        action &&
+        (
+            previousAxes[0] === 0 && previousAxes[1] === 0 ||
+            now - lastAxisActionTime >= repeatDelay
+        )
+    ){
+
+        send(action);
+        lastAxisActionTime=now;
+
+    }
+
+
+    previousAxes=[axisX,axisY];
+
+}
+
+
+
 
 function poll(){
 
@@ -147,6 +190,7 @@ if(!controllerConnected){
 
 
 setState(detectState());
+handleAxes(pad);
 
 
 pad.buttons.forEach(
@@ -188,6 +232,8 @@ b=>b.pressed
 
     controllerConnected=false;
     previousButtons=[];
+    previousAxes=[];
+    lastAxisActionTime=0;
     window.controllerAPI?.sendStatus("disconnected");
 
 
