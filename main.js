@@ -12,6 +12,9 @@ const fs = require("fs");
 
 let mainWindow = null;
 let overlayWindow = null;
+let overlayReady = false;
+let controllerConnected = false;
+let lastOverlayData = {state:"HOME"};
 
 
 const TV_USER_AGENT =
@@ -48,7 +51,7 @@ function log(...msg){
 
 
 
-function sendKey(key){
+function sendKey(key, modifiers=[]){
 
     if(
         !mainWindow ||
@@ -63,7 +66,8 @@ function sendKey(key){
     win.webContents.sendInputEvent({
 
         type:"keyDown",
-        keyCode:key
+        keyCode:key,
+        modifiers
 
     });
 
@@ -83,7 +87,8 @@ function sendKey(key){
         win.webContents.sendInputEvent({
 
             type:"keyUp",
-            keyCode:key
+            keyCode:key,
+            modifiers
 
         });
 
@@ -125,6 +130,32 @@ ipcMain.on(
             break;
 
 
+        case "SEARCH":
+            sendKey("/");
+            break;
+
+
+        case "MENU":
+            sendKey("M");
+            break;
+
+
+        case "HIDE_CONTROLS":
+            sendKey("ESC");
+            break;
+
+
+        case "BACKSPACE":
+            sendKey("BACKSPACE");
+            break;
+
+
+        case "CLEAR":
+            sendKey("A", ["control"]);
+            sendKey("BACKSPACE");
+            break;
+
+
         case "UP":
             sendKey("ARROWUP");
             break;
@@ -148,6 +179,26 @@ ipcMain.on(
         case "PAUSE":
         case "PLAY":
             sendKey("SPACE");
+            break;
+
+
+        case "VOLUME_DOWN":
+            sendKey("ARROWDOWN");
+            break;
+
+
+        case "VOLUME_UP":
+            sendKey("ARROWUP");
+            break;
+
+
+        case "SKIP_BACK":
+            sendKey("ARROWLEFT");
+            break;
+
+
+        case "SKIP_FORWARD":
+            sendKey("ARROWRIGHT");
             break;
 
 
@@ -184,13 +235,20 @@ ipcMain.on(
 
     if(status==="connected"){
 
+        controllerConnected=true;
+
+        if(overlayReady){
+
         overlayWindow.show();
+
+        }
 
     }
 
 
     if(status==="disconnected"){
 
+        controllerConnected=false;
         overlayWindow.hide();
 
     }
@@ -210,9 +268,13 @@ ipcMain.on(
 (event,data)=>{
 
 
+    lastOverlayData=data;
+
+
     if(
         !overlayWindow ||
-        overlayWindow.isDestroyed()
+        overlayWindow.isDestroyed() ||
+        !overlayReady
     )
         return;
 
@@ -264,7 +326,7 @@ function createOverlay(){
 
     const height =
         Math.round(
-            100 * scale
+            140 * scale
         );
 
 
@@ -346,11 +408,34 @@ function createOverlay(){
     );
 
 
+    overlayWindow.webContents.on(
+        "did-finish-load",
+        ()=>{
+
+            overlayReady=true;
+
+            overlayWindow.webContents.send(
+                "update-overlay",
+                lastOverlayData
+            );
+
+            if(controllerConnected){
+
+                overlayWindow.show();
+
+            }
+
+        }
+    );
+
+
 
     overlayWindow.on(
         "closed",
         ()=>{
 
+            overlayReady=false;
+            controllerConnected=false;
             overlayWindow=null;
 
         }

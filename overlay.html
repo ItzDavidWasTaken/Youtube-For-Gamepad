@@ -56,7 +56,11 @@ document.getElementById(
 
 
 
-function update(state){
+function update(data){
+
+
+const state =
+typeof data === "string" ? data : data?.state;
 
 
 
@@ -108,7 +112,7 @@ box.innerHTML=text;
 
 
 
-window.electronAPI?.onOverlay(
+window.controllerAPI?.onOverlay(
 update
 );
 

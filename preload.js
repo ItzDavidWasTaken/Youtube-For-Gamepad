@@ -45,6 +45,16 @@ contextBridge.exposeInMainWorld(
                 data
             );
 
+        },
+
+
+        onOverlay:(callback)=>{
+
+            ipcRenderer.on(
+                "update-overlay",
+                (event,data)=>callback(data)
+            );
+
         }
 
     }
