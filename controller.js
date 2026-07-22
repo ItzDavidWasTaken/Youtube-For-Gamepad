@@ -91,6 +91,7 @@ function getAction(button){
         VIDEO:{
             0:"SELECT",
             1:"BACK",
+            3:"HIDE"
             4:"SKIP_BACK",
             5:"SKIP_FORWARD",
             9:"PAUSE",

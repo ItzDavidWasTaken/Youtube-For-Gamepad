@@ -227,7 +227,7 @@ typeof data === "string" ? data : data?.state;
 
 let text="";
 
-if(state==="HOME"){
+if(state==="HOME" || state==="SEARCH"){
 
 text=
 '<div class="control"><kbd>A</kbd><span class="action">Select</span></div>'+
@@ -247,17 +247,6 @@ text=
 '<div class="control"><kbd class="start"><span></span></kbd><span class="action">Pause</span></div>';
 
 }
-
-
-
-if(state==="SEARCH"){
-
-text=
-'<div class="control"><kbd>A</kbd><span class="action">Select</span></div>'+
-'<div class="control"><kbd>B</kbd><span class="action">Back</span></div>';
-
-}
-
 
 
 box.innerHTML=

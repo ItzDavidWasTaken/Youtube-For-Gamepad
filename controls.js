@@ -21,14 +21,4 @@ VIDEO: {
 
 },
 
-
-
-SEARCH: {
-
-    A: "SELECT",
-    B: "BACK"
-
-}
-
-
 };
