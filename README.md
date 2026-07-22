@@ -20,3 +20,11 @@ This app runs the TV/Console UI for youtube on pc allowing for controller inputs
 * Esc = Back
 * Arrow Keys = Directions
 * Space = Pause
+
+## LINUX REQUIRED PACKAGE
+>To run app images on linux you are required to have fuse2 installed. Most distro's come with it already but just incase:
+>**Ubuntu** / **Debian** / **Linux Mint**: sudo apt install libfuse2
+>**Fedora** / **CentOS** / **RHEL**: sudo dnf install fuse
+>**Arch Linux** / **Manjaro** / **CachyOS**: sudo pacman -S fuse2
+
+>This is required to run any AppImage on linux
