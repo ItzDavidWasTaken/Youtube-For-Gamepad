@@ -110,6 +110,22 @@ function showControllerOverlay(hideDuringPlayback=false){
 
 
 
+function hideControllerOverlay(){
+
+    clearTimeout(overlayHideTimer);
+    overlayHideTimer=null;
+
+
+    if(
+        overlayWindow &&
+        !overlayWindow.isDestroyed()
+    )
+        overlayWindow.hide();
+
+}
+
+
+
 
 
 
@@ -306,7 +322,7 @@ ipcMain.on(
         controllerConnected=false;
         clearTimeout(overlayHideTimer);
         overlayHideTimer=null;
-        overlayWindow.hide();
+        hideControllerOverlay();
 
     }
 
@@ -458,11 +474,6 @@ function createOverlay(){
 
 
 
-    overlayWindow.setIgnoreMouseEvents(
-        true
-    );
-
-
     overlayWindow.setAlwaysOnTop(
         true,
         "screen-saver"
@@ -518,8 +529,7 @@ function createOverlay(){
 
             overlayReady=false;
             controllerConnected=false;
-            clearTimeout(overlayHideTimer);
-            overlayHideTimer=null;
+            hideControllerOverlay();
             overlayWindow=null;
 
         }
@@ -586,12 +596,6 @@ function createWindow(){
     });
 
 
-    mainWindow.setIgnoreMouseEvents(
-        true
-    );
-
-
-
     mainWindow.webContents.setUserAgent(
         TV_USER_AGENT
     );
@@ -619,7 +623,7 @@ function createWindow(){
 
 
         mainWindow.webContents.insertCSS(
-            "* { cursor: none !important; }"
+            "* { cursor: none !important; pointer-events: none !important; }"
         );
 
 
@@ -661,6 +665,30 @@ function createWindow(){
 
 
     });
+
+
+    mainWindow.on(
+    "minimize",
+    hideControllerOverlay
+    );
+
+
+    mainWindow.on(
+    "hide",
+    hideControllerOverlay
+    );
+
+
+    mainWindow.on(
+    "restore",
+    ()=>showControllerOverlay(lastOverlayData?.state === "VIDEO")
+    );
+
+
+    mainWindow.on(
+    "show",
+    ()=>showControllerOverlay(lastOverlayData?.state === "VIDEO")
+    );
 
 
 }

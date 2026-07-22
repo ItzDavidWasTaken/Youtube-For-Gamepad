@@ -132,6 +132,51 @@ background:#d59b3d;
 .action{
 
 color:rgba(255,255,255,.88);
+
+}
+
+
+.bumper{
+
+width:46px;
+
+border-radius:8px;
+
+background:#4d86d8;
+
+font-size:12px;
+
+}
+
+
+.control:nth-child(4) .bumper{
+
+background:#d59b3d;
+
+}
+
+
+.start{
+
+width:30px;
+
+background:#d59b3d;
+
+}
+
+
+.start span{
+
+display:block;
+
+width:14px;
+
+height:2px;
+
+margin:2px 0;
+
+background:white;
+
 }
 
 
@@ -147,10 +192,7 @@ color:rgba(255,255,255,.88);
 
 </div>
 
-
-
 <script>
-
 
 const box =
 document.getElementById(
@@ -184,9 +226,9 @@ if(state==="VIDEO"){
 text=
 '<div class="control"><kbd>A</kbd><span class="action">Select</span></div>'+
 '<div class="control"><kbd>B</kbd><span class="action">Back</span></div>'+
-'<div class="control"><kbd>LB</kbd><span class="action">Skip back</span></div>'+
-'<div class="control"><kbd>RB</kbd><span class="action">Skip forward</span></div>'+
-'<div class="control"><kbd>START</kbd><span class="action">Pause</span></div>';
+'<div class="control"><kbd class="bumper">LB</kbd><span class="action">Skip back</span></div>'+
+'<div class="control"><kbd class="bumper">RB</kbd><span class="action">Skip forward</span></div>'+
+'<div class="control"><kbd class="start"><span></span><span></span><span></span></kbd><span class="action">Pause</span></div>';
 
 }
 
