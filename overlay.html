@@ -12,23 +12,123 @@ margin:0;
 
 background:transparent;
 
-font-family:Arial;
+font-family:"Segoe UI",Arial,sans-serif;
 
 }
 
 
 #box{
 
-background:rgba(0,0,0,.65);
+box-sizing:border-box;
+
+width:100%;
+
+height:100%;
+
+background:rgba(14,18,24,.94);
+
+border:1px solid rgba(255,255,255,.2);
+
+border-radius:8px;
+
+box-shadow:0 8px 24px rgba(0,0,0,.35);
 
 color:white;
 
-padding:12px;
+padding:12px 14px;
 
-border-radius:10px;
+overflow:hidden;
 
-font-size:18px;
+}
 
+
+#heading{
+
+display:flex;
+
+align-items:center;
+
+justify-content:space-between;
+
+margin-bottom:8px;
+
+color:rgba(255,255,255,.62);
+
+font-size:11px;
+
+font-weight:700;
+
+letter-spacing:1.4px;
+
+}
+
+
+#state{
+
+color:#6fd6ff;
+
+font-size:10px;
+
+letter-spacing:1px;
+
+}
+
+
+.control{
+
+display:flex;
+
+align-items:center;
+
+min-height:20px;
+
+font-size:13px;
+
+line-height:20px;
+
+}
+
+
+kbd{
+
+display:inline-flex;
+
+align-items:center;
+
+justify-content:center;
+
+min-width:28px;
+
+height:18px;
+
+box-sizing:border-box;
+
+margin-right:9px;
+
+padding:0 5px;
+
+background:rgba(255,255,255,.13);
+
+border:1px solid rgba(255,255,255,.3);
+
+border-radius:4px;
+
+color:white;
+
+font-family:inherit;
+
+font-size:10px;
+
+font-weight:700;
+
+letter-spacing:.3px;
+
+}
+
+
+.action{
+
+color:rgba(255,255,255,.88);
 }
 
 
@@ -66,13 +166,17 @@ typeof data === "string" ? data : data?.state;
 
 let text="";
 
+let stateLabel="";
+
 
 
 if(state==="HOME"){
 
+stateLabel="HOME";
+
 text=
-"A Select<br>"+
-"B Back";
+'<div class="control"><kbd>A</kbd><span class="action">Select</span></div>'+
+'<div class="control"><kbd>B</kbd><span class="action">Back</span></div>';
 
 }
 
@@ -80,11 +184,14 @@ text=
 
 if(state==="VIDEO"){
 
+stateLabel="PLAYBACK";
+
 text=
-"A Select<br>"+
-"B Back<br>"+
-"LB/RB Skip<br>"+
-"Start Pause";
+'<div class="control"><kbd>A</kbd><span class="action">Select</span></div>'+
+'<div class="control"><kbd>B</kbd><span class="action">Back</span></div>'+
+'<div class="control"><kbd>LB</kbd><span class="action">Skip back</span></div>'+
+'<div class="control"><kbd>RB</kbd><span class="action">Skip forward</span></div>'+
+'<div class="control"><kbd>START</kbd><span class="action">Pause</span></div>';
 
 }
 
@@ -92,15 +199,19 @@ text=
 
 if(state==="SEARCH"){
 
+stateLabel="SEARCH";
+
 text=
-"A Select<br>"+
-"B Back";
+'<div class="control"><kbd>A</kbd><span class="action">Select</span></div>'+
+'<div class="control"><kbd>B</kbd><span class="action">Back</span></div>';
 
 }
 
 
 
-box.innerHTML=text;
+box.innerHTML=
+'<div id="heading"><span>CONTROLLER</span><span id="state">'+stateLabel+'</span></div>'+
+text;
 
 
 }

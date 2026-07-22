@@ -50,7 +50,6 @@ function log(...msg){
 
 
 
-
 function sendKey(key, modifiers=[]){
 
     if(
@@ -58,7 +57,6 @@ function sendKey(key, modifiers=[]){
         mainWindow.isDestroyed()
     )
         return;
-
 
     const win = mainWindow;
 
@@ -321,6 +319,12 @@ function createOverlay(){
         );
 
 
+    const margin =
+        Math.round(
+            40 * scale
+        );
+
+
 
     overlayWindow =
     new BrowserWindow({
@@ -382,12 +386,12 @@ function createOverlay(){
     overlayWindow.setPosition(
 
         Math.round(
-            bounds.x + (bounds.width - width) / 2
+            bounds.x + bounds.width - width - margin
         ),
 
 
         Math.round(
-            bounds.y + bounds.height - height - (40 * scale)
+            bounds.y + bounds.height - height - margin
         )
 
     );
@@ -493,6 +497,9 @@ function createWindow(){
     });
 
 
+    mainWindow.setIgnoreMouseEvents(
+        true
+    );
 
 
 
@@ -520,6 +527,11 @@ function createWindow(){
     mainWindow.webContents.on(
     "did-finish-load",
     ()=>{
+
+
+        mainWindow.webContents.insertCSS(
+            "* { cursor: none !important; }"
+        );
 
 
         log(
