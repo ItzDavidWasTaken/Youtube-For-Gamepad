@@ -72,7 +72,6 @@ function sendKey(key, modifiers=[]){
     });
 
 
-
     setTimeout(()=>{
 
 
@@ -81,7 +80,6 @@ function sendKey(key, modifiers=[]){
             win.isDestroyed()
         )
             return;
-
 
 
         win.webContents.sendInputEvent({
@@ -116,9 +114,6 @@ function executeMediaAction(action){
         SKIP_FORWARD:
         `(()=>{const v=document.querySelector("video");if(v)v.currentTime=Math.min(v.duration,v.currentTime+10);})()`,
 
-        HIDE_CONTROLS:
-        `(()=>{document.activeElement?.blur();document.body?.click();})()`
-
     };
 
 
@@ -134,45 +129,6 @@ function executeMediaAction(action){
     }
 
 }
-
-
-
-function openMenu(){
-
-    if(
-        !mainWindow ||
-        mainWindow.isDestroyed()
-    )
-        return;
-
-
-    mainWindow.webContents.executeJavaScript(`
-        (()=>{
-            const menu = document.querySelector(
-                '[aria-label*="Menu" i], [title*="Menu" i], button[aria-label*="Guide" i]'
-            );
-            if(menu){ menu.click(); return true; }
-            return false;
-        })()
-    `).then(
-        opened=>{
-
-            if(!opened){
-
-                sendKey("M");
-
-            }
-
-        }
-    ).catch(
-        ()=>sendKey("M")
-    );
-
-}
-
-
-
-
 
 
 
@@ -192,35 +148,12 @@ ipcMain.on(
 
 
         case "SELECT":
-        case "CONFIRM":
             sendKey("ENTER");
             break;
 
 
         case "BACK":
-        case "CLOSE":
             sendKey("ESC");
-            break;
-
-
-        case "MENU":
-            openMenu();
-            break;
-
-
-        case "HIDE_CONTROLS":
-            executeMediaAction(action);
-            break;
-
-
-        case "BACKSPACE":
-            sendKey("Backspace");
-            break;
-
-
-        case "CLEAR":
-            sendKey("A", ["control"]);
-            sendKey("Backspace");
             break;
 
 

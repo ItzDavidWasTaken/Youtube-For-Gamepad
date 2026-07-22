@@ -81,7 +81,6 @@ function getAction(button){
         HOME:{
             0:"SELECT",
             1:"BACK",
-            9:"MENU",
             12:"UP",
             13:"DOWN",
             14:"LEFT",
@@ -92,7 +91,6 @@ function getAction(button){
         VIDEO:{
             0:"SELECT",
             1:"BACK",
-            3:"HIDE_CONTROLS",
             4:"SKIP_BACK",
             5:"SKIP_FORWARD",
             9:"PAUSE",
@@ -104,10 +102,8 @@ function getAction(button){
 
 
         SEARCH:{
-            0:"CONFIRM",
-            1:"CLOSE",
-            2:"BACKSPACE",
-            3:"CLEAR"
+            0:"SELECT",
+            1:"BACK"
         }
 
     };
