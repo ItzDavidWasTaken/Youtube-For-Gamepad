@@ -15,7 +15,6 @@ let overlayWindow = null;
 let overlayReady = false;
 let controllerConnected = false;
 let lastOverlayData = {state:"HOME"};
-let overlayHideTimer = null;
 let playbackOverlayWatcher = null;
 
 
@@ -49,7 +48,7 @@ function log(...msg){
 
 
 
-function showControllerOverlay(hideDuringPlayback=false){
+function showControllerOverlay(){
 
     if(
         !overlayWindow ||
@@ -61,51 +60,6 @@ function showControllerOverlay(hideDuringPlayback=false){
 
     overlayWindow.show();
 
-
-    if(overlayHideTimer){
-
-        clearTimeout(overlayHideTimer);
-        overlayHideTimer=null;
-
-    }
-
-
-    if(
-        !hideDuringPlayback ||
-        lastOverlayData?.state !== "VIDEO"
-    )
-        return;
-
-
-    overlayHideTimer=setTimeout(()=>{
-
-        if(
-            !mainWindow ||
-            mainWindow.isDestroyed() ||
-            !overlayWindow ||
-            overlayWindow.isDestroyed()
-        )
-            return;
-
-
-        mainWindow.webContents.executeJavaScript(
-            `(()=>{const v=document.querySelector("video");return Boolean(v&&!v.paused&&!v.ended);})()`
-        ).then(
-            playing=>{
-
-                if(playing){
-
-                    overlayWindow.hide();
-
-                }
-
-            }
-        ).catch(
-            ()=>{}
-        );
-
-
-    },4000);
 
 }
 
@@ -126,63 +80,22 @@ function syncPlaybackOverlay(){
         (()=>{
             const video=document.querySelector("video");
 
-            if(!video || video.paused || video.ended){
-
-                return true;
-
-            }
-
-
-            const isVisible=element=>{
-
-                const style=getComputedStyle(element);
-                const rect=element.getBoundingClientRect();
-
-
-                return Boolean(
-                    style.display !== "none" &&
-                    style.visibility !== "hidden" &&
-                    Number(style.opacity) > 0 &&
-                    rect.width > 0 &&
-                    rect.height > 0 &&
-                    !element.closest("[aria-hidden='true']")
-                );
-
-            };
-
-
-            const controlSelectors=[
-                ".ytp-chrome-bottom",
-                ".ytp-chrome-controls",
-                "#player-controls",
-                ".player-controls",
-                "[class*='PlayerControls']",
-                "[class*='player-controls']",
-                "[class*='PlaybackControls']",
-                "[class*='playback-controls']",
-                "[aria-label*='pause' i]",
-                "[aria-label*='play' i]",
-                "[aria-label*='seek' i]",
-                "[aria-label*='skip' i]"
-            ];
-
-
-            return controlSelectors.some(
-                selector=>[...document.querySelectorAll(selector)].some(
-                    element=>isVisible(element)
-                )
+            return Boolean(
+                video &&
+                !video.paused &&
+                !video.ended
             );
         })()
     `).then(
-        controlsVisible=>{
+        videoPlaying=>{
 
-            if(controlsVisible){
+            if(videoPlaying){
 
-                showControllerOverlay();
+                hideControllerOverlay();
 
             }else{
 
-                hideControllerOverlay();
+                showControllerOverlay();
 
             }
 
@@ -196,10 +109,6 @@ function syncPlaybackOverlay(){
 
 
 function hideControllerOverlay(){
-
-    clearTimeout(overlayHideTimer);
-    overlayHideTimer=null;
-
 
     if(
         overlayWindow &&
@@ -417,8 +326,6 @@ ipcMain.on(
     if(status==="disconnected"){
 
         controllerConnected=false;
-        clearTimeout(overlayHideTimer);
-        overlayHideTimer=null;
         hideControllerOverlay();
 
     }
@@ -439,14 +346,6 @@ ipcMain.on(
 
 
     lastOverlayData=data;
-
-
-    if(data?.state !== "VIDEO"){
-
-        clearTimeout(overlayHideTimer);
-        overlayHideTimer=null;
-
-    }
 
 
     if(
