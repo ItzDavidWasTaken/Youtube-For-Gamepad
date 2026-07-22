@@ -10,6 +10,10 @@ body{
 
 margin:0;
 
+width:100vw;
+
+height:100vh;
+
 background:transparent;
 
 font-family:"Segoe UI",Arial,sans-serif;
@@ -18,6 +22,12 @@ font-family:"Segoe UI",Arial,sans-serif;
 
 
 #box{
+
+position:fixed;
+
+left:0;
+
+bottom:0;
 
 box-sizing:border-box;
 
@@ -142,7 +152,7 @@ width:46px;
 
 border-radius:8px;
 
-background:#4d86d8;
+background:#686868;
 
 font-size:12px;
 
@@ -151,16 +161,18 @@ font-size:12px;
 
 .control:nth-child(4) .bumper{
 
-background:#d59b3d;
+background:#686868;
 
 }
 
 
 .start{
 
-width:30px;
+width:42px;
 
-background:#d59b3d;
+background:#686868;
+
+border-radius:999px;
 
 }
 
@@ -169,13 +181,17 @@ background:#d59b3d;
 
 display:block;
 
-width:14px;
+width:0;
 
-height:2px;
+height:0;
 
-margin:2px 0;
+margin-left:2px;
 
-background:white;
+border-top:8px solid transparent;
+
+border-bottom:8px solid transparent;
+
+border-left:12px solid white;
 
 }
 
@@ -228,7 +244,7 @@ text=
 '<div class="control"><kbd>B</kbd><span class="action">Back</span></div>'+
 '<div class="control"><kbd class="bumper">LB</kbd><span class="action">Skip back</span></div>'+
 '<div class="control"><kbd class="bumper">RB</kbd><span class="action">Skip forward</span></div>'+
-'<div class="control"><kbd class="start"><span></span><span></span><span></span></kbd><span class="action">Pause</span></div>';
+'<div class="control"><kbd class="start"><span></span></kbd><span class="action">Pause</span></div>';
 
 }
 

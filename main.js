@@ -16,6 +16,7 @@ let overlayReady = false;
 let controllerConnected = false;
 let lastOverlayData = {state:"HOME"};
 let overlayHideTimer = null;
+let playbackOverlayWatcher = null;
 
 
 const TV_USER_AGENT =
@@ -105,6 +106,75 @@ function showControllerOverlay(hideDuringPlayback=false){
 
 
     },4000);
+
+}
+
+
+
+function syncPlaybackOverlay(){
+
+    if(
+        !controllerConnected ||
+        lastOverlayData?.state !== "VIDEO" ||
+        !mainWindow ||
+        mainWindow.isDestroyed()
+    )
+        return;
+
+
+    mainWindow.webContents.executeJavaScript(`
+        (()=>{
+            const video=document.querySelector("video");
+
+            if(!video || video.paused || video.ended){
+
+                return true;
+
+            }
+
+
+            const controls=document.querySelector(
+                ".ytp-chrome-bottom, .ytp-chrome-controls, #player-controls, .player-controls, [class*='PlayerControls'], [class*='player-controls']"
+            );
+
+
+            if(!controls){
+
+                return false;
+
+            }
+
+
+            const style=getComputedStyle(controls);
+            const rect=controls.getBoundingClientRect();
+
+
+            return Boolean(
+                style.display !== "none" &&
+                style.visibility !== "hidden" &&
+                Number(style.opacity) > 0 &&
+                rect.width > 0 &&
+                rect.height > 0 &&
+                !controls.closest("[aria-hidden='true']")
+            );
+        })()
+    `).then(
+        controlsVisible=>{
+
+            if(controlsVisible){
+
+                showControllerOverlay();
+
+            }else{
+
+                hideControllerOverlay();
+
+            }
+
+        }
+    ).catch(
+        ()=>hideControllerOverlay()
+    );
 
 }
 
@@ -221,7 +291,11 @@ ipcMain.on(
     );
 
 
-    showControllerOverlay(true);
+    if(lastOverlayData?.state !== "VIDEO"){
+
+        showControllerOverlay();
+
+    }
 
 
     switch(action){
@@ -310,7 +384,15 @@ ipcMain.on(
 
         if(overlayReady){
 
-        overlayWindow.show();
+            if(lastOverlayData?.state === "VIDEO"){
+
+                syncPlaybackOverlay();
+
+            }else{
+
+                overlayWindow.show();
+
+            }
 
         }
 
@@ -369,7 +451,7 @@ ipcMain.on(
 
     if(data?.state === "VIDEO"){
 
-        showControllerOverlay(true);
+        syncPlaybackOverlay();
 
     }else{
 
@@ -422,13 +504,6 @@ function createOverlay(){
         );
 
 
-    const margin =
-        Math.round(
-            0
-        );
-
-
-
     overlayWindow =
     new BrowserWindow({
 
@@ -440,6 +515,8 @@ function createOverlay(){
         frame:false,
 
         transparent:true,
+
+        useContentSize:true,
 
 
         alwaysOnTop:true,
@@ -481,18 +558,17 @@ function createOverlay(){
 
 
 
-    overlayWindow.setPosition(
+    overlayWindow.setBounds({
 
-        Math.round(
-            bounds.x + bounds.width - width - margin
-        ),
+        x:Math.round(bounds.x),
 
+        y:Math.round(bounds.y + bounds.height - height),
 
-        Math.round(
-            bounds.y + bounds.height - height - margin
-        )
+        width,
 
-    );
+        height
+
+    });
 
 
 
@@ -514,7 +590,15 @@ function createOverlay(){
 
             if(controllerConnected){
 
-                overlayWindow.show();
+                if(lastOverlayData?.state === "VIDEO"){
+
+                    syncPlaybackOverlay();
+
+                }else{
+
+                    overlayWindow.show();
+
+                }
 
             }
 
@@ -530,6 +614,8 @@ function createOverlay(){
             overlayReady=false;
             controllerConnected=false;
             hideControllerOverlay();
+            clearInterval(playbackOverlayWatcher);
+            playbackOverlayWatcher=null;
             overlayWindow=null;
 
         }
@@ -640,6 +726,12 @@ function createWindow(){
         );
 
 
+        playbackOverlayWatcher=setInterval(
+            syncPlaybackOverlay,
+            250
+        );
+
+
     });
 
 
@@ -681,13 +773,15 @@ function createWindow(){
 
     mainWindow.on(
     "restore",
-    ()=>showControllerOverlay(lastOverlayData?.state === "VIDEO")
+    ()=>lastOverlayData?.state === "VIDEO" ?
+        syncPlaybackOverlay() : showControllerOverlay()
     );
 
 
     mainWindow.on(
     "show",
-    ()=>showControllerOverlay(lastOverlayData?.state === "VIDEO")
+    ()=>lastOverlayData?.state === "VIDEO" ?
+        syncPlaybackOverlay() : showControllerOverlay()
     );
 
 
