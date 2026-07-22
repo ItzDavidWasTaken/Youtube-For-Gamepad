@@ -1,139 +1,41 @@
 module.exports = function(win) {
 
+    console.log("Controller test loaded");
 
     if (!win) {
-
-        console.log(
-            "No window supplied to controller"
-        );
-
+        console.log("No window");
         return;
-
     }
 
 
     try {
 
-
         const Gamepad =
             require("node-gamepad");
 
-
-        console.log(
-            "Controller module loaded"
-        );
+        console.log("node-gamepad loaded");
 
 
         const controller =
             new Gamepad("xbox360");
 
 
+        console.log("controller object created");
+
+
         controller.connect();
 
 
-        console.log(
-            "Controller connected"
-        );
-
-
-
-        function sendKey(key) {
-
-
-            win.webContents.sendInputEvent({
-
-                type: "keyDown",
-                keyCode: key
-
-            });
-
-
-            setTimeout(() => {
-
-
-                win.webContents.sendInputEvent({
-
-                    type: "keyUp",
-                    keyCode: key
-
-                });
-
-
-            }, 50);
-
-
-        }
-
-
-
-        controller.on(
-            "down",
-            button => {
-
-
-                console.log(
-                    "Button:",
-                    button
-                );
-
-
-                switch(button) {
-
-
-                    case "A":
-                        sendKey("ENTER");
-                        break;
-
-
-                    case "B":
-                        sendKey("ESC");
-                        break;
-
-
-                    case "START":
-                        sendKey("SPACE");
-                        break;
-
-
-                    case "UP":
-                        sendKey("UP");
-                        break;
-
-
-                    case "DOWN":
-                        sendKey("DOWN");
-                        break;
-
-
-                    case "LEFT":
-                        sendKey("LEFT");
-                        break;
-
-
-                    case "RIGHT":
-                        sendKey("RIGHT");
-                        break;
-
-
-                }
-
-
-            }
-        );
+        console.log("controller connected");
 
 
     }
     catch(error) {
 
-
         console.log(
-            "Controller disabled:",
+            "Controller error:",
             error.message
         );
-
-
-        // Do nothing.
-        // App continues without controller.
 
     }
 

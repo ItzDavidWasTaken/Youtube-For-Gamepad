@@ -132,13 +132,16 @@ function createWindow() {
 
 
     mainWindow.webContents.on(
-        "did-finish-load",
-        ()=>{
+    "did-finish-load",
+    ()=>{
 
 
-            log(
-                "YouTube TV loaded"
-            );
+        log(
+            "YouTube TV loaded"
+        );
+
+
+        setTimeout(()=>{
 
 
             try {
@@ -172,9 +175,11 @@ function createWindow() {
             }
 
 
-        }
-    );
+        }, 5000);
 
+
+    }
+);
 
 
     mainWindow.on(
