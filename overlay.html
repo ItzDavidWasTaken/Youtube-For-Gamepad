@@ -35,7 +35,13 @@ box-shadow:0 8px 24px rgba(0,0,0,.35);
 
 color:white;
 
-padding:12px 14px;
+display:flex;
+
+align-items:center;
+
+gap:18px;
+
+padding:10px 16px;
 
 overflow:hidden;
 
@@ -46,11 +52,13 @@ overflow:hidden;
 
 display:flex;
 
-align-items:center;
+flex-direction:column;
 
-justify-content:space-between;
+align-items:flex-start;
 
-margin-bottom:8px;
+flex:0 0 auto;
+
+gap:3px;
 
 color:rgba(255,255,255,.62);
 
@@ -80,11 +88,31 @@ display:flex;
 
 align-items:center;
 
-min-height:20px;
+min-height:24px;
 
 font-size:13px;
 
 line-height:20px;
+
+white-space:nowrap;
+
+}
+
+
+#controls{
+
+display:flex;
+
+align-items:center;
+
+gap:16px;
+
+}
+
+
+.control kbd{
+
+margin-right:7px;
 
 }
 
@@ -211,7 +239,7 @@ text=
 
 box.innerHTML=
 '<div id="heading"><span>CONTROLLER</span><span id="state">'+stateLabel+'</span></div>'+
-text;
+'<div id="controls">'+text+'</div>';
 
 
 }

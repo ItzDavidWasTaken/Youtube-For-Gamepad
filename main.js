@@ -15,6 +15,7 @@ let overlayWindow = null;
 let overlayReady = false;
 let controllerConnected = false;
 let lastOverlayData = {state:"HOME"};
+let overlayHideTimer = null;
 
 
 const TV_USER_AGENT =
@@ -42,6 +43,68 @@ function log(...msg){
     }catch{}
 
     console.log(...msg);
+
+}
+
+
+
+function showControllerOverlay(hideDuringPlayback=false){
+
+    if(
+        !overlayWindow ||
+        overlayWindow.isDestroyed() ||
+        !overlayReady
+    )
+        return;
+
+
+    overlayWindow.show();
+
+
+    if(overlayHideTimer){
+
+        clearTimeout(overlayHideTimer);
+        overlayHideTimer=null;
+
+    }
+
+
+    if(
+        !hideDuringPlayback ||
+        lastOverlayData?.state !== "VIDEO"
+    )
+        return;
+
+
+    overlayHideTimer=setTimeout(()=>{
+
+        if(
+            !mainWindow ||
+            mainWindow.isDestroyed() ||
+            !overlayWindow ||
+            overlayWindow.isDestroyed()
+        )
+            return;
+
+
+        mainWindow.webContents.executeJavaScript(
+            `(()=>{const v=document.querySelector("video");return Boolean(v&&!v.paused&&!v.ended);})()`
+        ).then(
+            playing=>{
+
+                if(playing){
+
+                    overlayWindow.hide();
+
+                }
+
+            }
+        ).catch(
+            ()=>{}
+        );
+
+
+    },4000);
 
 }
 
@@ -142,6 +205,9 @@ ipcMain.on(
     );
 
 
+    showControllerOverlay(true);
+
+
     switch(action){
 
 
@@ -238,6 +304,8 @@ ipcMain.on(
     if(status==="disconnected"){
 
         controllerConnected=false;
+        clearTimeout(overlayHideTimer);
+        overlayHideTimer=null;
         overlayWindow.hide();
 
     }
@@ -260,6 +328,14 @@ ipcMain.on(
     lastOverlayData=data;
 
 
+    if(data?.state !== "VIDEO"){
+
+        clearTimeout(overlayHideTimer);
+        overlayHideTimer=null;
+
+    }
+
+
     if(
         !overlayWindow ||
         overlayWindow.isDestroyed() ||
@@ -273,6 +349,17 @@ ipcMain.on(
         "update-overlay",
         data
     );
+
+
+    if(data?.state === "VIDEO"){
+
+        showControllerOverlay(true);
+
+    }else{
+
+        showControllerOverlay();
+
+    }
 
 
 });
@@ -309,13 +396,13 @@ function createOverlay(){
 
     const width =
         Math.round(
-            320 * scale
+            620 * scale
         );
 
 
     const height =
         Math.round(
-            140 * scale
+            64 * scale
         );
 
 
@@ -431,6 +518,8 @@ function createOverlay(){
 
             overlayReady=false;
             controllerConnected=false;
+            clearTimeout(overlayHideTimer);
+            overlayHideTimer=null;
             overlayWindow=null;
 
         }
