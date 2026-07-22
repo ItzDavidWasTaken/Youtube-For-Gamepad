@@ -556,6 +556,8 @@ function createOverlay(){
 
             contextIsolation:true,
 
+            backgroundThrottling:false,
+
 
             nodeIntegration:false
 
@@ -689,6 +691,8 @@ function createWindow(){
 
             contextIsolation:true,
 
+            backgroundThrottling:false,
+
 
             nodeIntegration:false
 
@@ -734,6 +738,37 @@ function createWindow(){
 
         mainWindow.webContents.insertCSS(
             `body { padding-bottom: ${overlayHeight}px !important; box-sizing: border-box !important; } * { cursor: none !important; pointer-events: none !important; } .ytp-autohide .ytp-chrome-bottom, .ytp-autohide .ytp-chrome-controls, .ytp-autohide .ytp-progress-bar-container, .ytp-autohide [class*='PlayerControls'], .ytp-autohide [class*='player-controls'], [class*='PlaybackControls'][aria-hidden='true'], [class*='playback-controls'][aria-hidden='true'] { opacity: 1 !important; visibility: visible !important; display: flex !important; }`
+        );
+
+
+        mainWindow.webContents.executeJavaScript(`
+            (()=>{
+                const keepControlsVisible=()=>{
+                    document.querySelectorAll(
+                        ".ytp-autohide, [class*='PlayerControls'], [class*='player-controls'], [class*='PlaybackControls'], [class*='playback-controls']"
+                    ).forEach(element=>{
+
+                        element.classList.remove("ytp-autohide");
+
+                    });
+                };
+
+
+                keepControlsVisible();
+
+                new MutationObserver(
+                    keepControlsVisible
+                ).observe(
+                    document.documentElement,
+                    {
+                        attributes:true,
+                        attributeFilter:["class"],
+                        subtree:true
+                    }
+                );
+            })()
+        `).catch(
+            error=>log("Failed to keep playback controls visible:", error.message)
         );
 
 
