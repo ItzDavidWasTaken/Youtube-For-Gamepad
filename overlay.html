@@ -6,10 +6,9 @@
 
 <style>
 
-html,body{
+body{
 
 margin:0;
-padding:0;
 
 background:transparent;
 
@@ -18,19 +17,17 @@ font-family:Arial;
 }
 
 
-#controls{
+#box{
 
-
-background:rgba(0,0,0,0.65);
+background:rgba(0,0,0,.65);
 
 color:white;
 
-padding:10px 16px;
+padding:12px;
 
 border-radius:10px;
 
 font-size:18px;
-
 
 }
 
@@ -43,16 +40,81 @@ font-size:18px;
 <body>
 
 
-<div id="controls">
-
-A Select&nbsp;&nbsp;&nbsp; B Back
-
-<br>
-
-Start Pause
-
+<div id="box">
 
 </div>
+
+
+
+<script>
+
+
+const box =
+document.getElementById(
+"box"
+);
+
+
+
+function update(state){
+
+
+
+let text="";
+
+
+
+if(state==="HOME"){
+
+text=
+"A Select<br>"+
+"B Back<br>"+
+"Y Search<br>"+
+"Start Menu";
+
+}
+
+
+
+if(state==="VIDEO"){
+
+text=
+"A Select<br>"+
+"B Back<br>"+
+"LT/RT Volume<br>"+
+"LB/RB Skip<br>"+
+"Start Pause";
+
+}
+
+
+
+if(state==="SEARCH"){
+
+text=
+"A Confirm<br>"+
+"B Close<br>"+
+"X Backspace<br>"+
+"Y Clear";
+
+}
+
+
+
+box.innerHTML=text;
+
+
+}
+
+
+
+window.electronAPI?.onOverlay(
+update
+);
+
+
+
+</script>
 
 
 </body>

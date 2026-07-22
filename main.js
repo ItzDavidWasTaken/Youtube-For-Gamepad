@@ -18,7 +18,9 @@ const TV_USER_AGENT =
 "Mozilla/5.0 (SMART-TV; Linux; Tizen 7.0) AppleWebKit/537.36 (KHTML, like Gecko) Version/7.0 TV Safari/537.36";
 
 
-const logFile = path.join(
+
+const logFile =
+path.join(
     app.getPath("userData"),
     "youtube-tv-debug.log"
 );
@@ -43,9 +45,15 @@ function log(...msg){
 
 
 
+
+
+
 function sendKey(key){
 
-    if(!mainWindow || mainWindow.isDestroyed())
+    if(
+        !mainWindow ||
+        mainWindow.isDestroyed()
+    )
         return;
 
 
@@ -60,10 +68,16 @@ function sendKey(key){
     });
 
 
+
     setTimeout(()=>{
 
-        if(!win || win.isDestroyed())
+
+        if(
+            !win ||
+            win.isDestroyed()
+        )
             return;
+
 
 
         win.webContents.sendInputEvent({
@@ -84,88 +98,64 @@ function sendKey(key){
 
 
 
-ipcMain.on(
-    "controller-action",
-    (event, action)=>{
-
-
-        log(
-            "Controller:",
-            action
-        );
-
-
-        switch(action){
-
-            case "UP":
-                sendKey("UP");
-                break;
-
-            case "DOWN":
-                sendKey("DOWN");
-                break;
-
-            case "LEFT":
-                sendKey("LEFT");
-                break;
-
-            case "RIGHT":
-                sendKey("RIGHT");
-                break;
-
-            case "SELECT":
-                sendKey("ENTER");
-                break;
-
-            case "BACK":
-                sendKey("ESC");
-                break;
-
-            case "PLAY":
-                sendKey("SPACE");
-                break;
-
-        }
-
-    }
-);
-
-
-
-
-
 
 ipcMain.on(
-    "controller-status",
-    (event,status)=>{
+"controller-action",
+(event,action)=>{
 
 
-        log(
-            "Controller status:",
-            status
-        );
+    log(
+        "Controller action:",
+        action
+    );
 
 
-        if(!overlayWindow)
-            return;
+    switch(action){
 
 
-        if(status === "connected"){
+        case "SELECT":
+        case "CONFIRM":
+            sendKey("ENTER");
+            break;
 
-            overlayWindow.show();
 
-        }
+        case "BACK":
+        case "CLOSE":
+            sendKey("ESC");
+            break;
 
 
-        if(status === "disconnected"){
+        case "UP":
+            sendKey("ARROWUP");
+            break;
 
-            overlayWindow.hide();
 
-        }
+        case "DOWN":
+            sendKey("ARROWDOWN");
+            break;
+
+
+        case "LEFT":
+            sendKey("ARROWLEFT");
+            break;
+
+
+        case "RIGHT":
+            sendKey("ARROWRIGHT");
+            break;
+
+
+        case "PAUSE":
+        case "PLAY":
+            sendKey("SPACE");
+            break;
 
 
     }
-);
+
+
+});
+
 
 
 
@@ -174,34 +164,67 @@ ipcMain.on(
 
 
 ipcMain.on(
-    "overlay",
-    (event,state)=>{
+"controller-status",
+(event,status)=>{
 
 
-        if(
-            !overlayWindow ||
-            overlayWindow.isDestroyed()
-        )
-            return;
+    log(
+        "Controller:",
+        status
+    );
+
+
+    if(
+        !overlayWindow ||
+        overlayWindow.isDestroyed()
+    )
+        return;
 
 
 
-        if(state === "show"){
+    if(status==="connected"){
 
-            overlayWindow.show();
-
-        }
-
-
-        if(state === "hide"){
-
-            overlayWindow.hide();
-
-        }
-
+        overlayWindow.show();
 
     }
-);
+
+
+    if(status==="disconnected"){
+
+        overlayWindow.hide();
+
+    }
+
+
+});
+
+
+
+
+
+
+
+
+ipcMain.on(
+"overlay-update",
+(event,data)=>{
+
+
+    if(
+        !overlayWindow ||
+        overlayWindow.isDestroyed()
+    )
+        return;
+
+
+
+    overlayWindow.webContents.send(
+        "update-overlay",
+        data
+    );
+
+
+});
 
 
 
@@ -214,23 +237,59 @@ ipcMain.on(
 function createOverlay(){
 
 
+    const display =
+        screen.getPrimaryDisplay();
+
+
+    const bounds =
+        display.bounds;
+
+
+
+    // Scale overlay based on resolution
+
+    const scale =
+        Math.max(
+            1,
+            bounds.width / 1920
+        );
+
+
+
+    const width =
+        Math.round(
+            320 * scale
+        );
+
+
+    const height =
+        Math.round(
+            100 * scale
+        );
+
+
+
     overlayWindow =
     new BrowserWindow({
 
-        width:300,
+        width,
 
-        height:80,
+        height,
 
 
         frame:false,
 
         transparent:true,
 
+
         alwaysOnTop:true,
+
 
         skipTaskbar:true,
 
+
         focusable:false,
+
 
         show:false,
 
@@ -242,13 +301,16 @@ function createOverlay(){
                 "preload.js"
             ),
 
+
             contextIsolation:true,
+
 
             nodeIntegration:false
 
         }
 
     });
+
 
 
 
@@ -264,22 +326,16 @@ function createOverlay(){
 
 
 
-    const display =
-        screen.getPrimaryDisplay();
-
-
-    const bounds =
-        display.bounds;
-
-
-
     overlayWindow.setPosition(
 
-        bounds.x + 25,
+        Math.round(
+            bounds.x + (bounds.width - width) / 2
+        ),
 
-        bounds.y +
-        bounds.height -
-        120
+
+        Math.round(
+            bounds.y + bounds.height - height - (40 * scale)
+        )
 
     );
 
@@ -288,6 +344,7 @@ function createOverlay(){
     overlayWindow.loadFile(
         "overlay.html"
     );
+
 
 
     overlayWindow.on(
@@ -313,18 +370,33 @@ function createOverlay(){
 function createWindow(){
 
 
+
+    const display =
+        screen.getPrimaryDisplay();
+
+
+    const bounds =
+        display.bounds;
+
+
+
     mainWindow =
     new BrowserWindow({
 
-        width:1920,
+        width:bounds.width,
 
-        height:1080,
+        height:bounds.height,
+
 
         fullscreen:true,
 
         kiosk:true,
 
+
         autoHideMenuBar:true,
+
+
+        backgroundColor:"#000000",
 
 
         webPreferences:{
@@ -334,7 +406,9 @@ function createWindow(){
                 "preload.js"
             ),
 
+
             contextIsolation:true,
+
 
             nodeIntegration:false
 
@@ -345,8 +419,15 @@ function createWindow(){
 
 
 
+
     mainWindow.webContents.setUserAgent(
         TV_USER_AGENT
+    );
+
+
+
+    log(
+        "Loading YouTube TV"
     );
 
 
@@ -357,55 +438,57 @@ function createWindow(){
 
 
 
+
+
+
     mainWindow.webContents.on(
-        "did-finish-load",
-        ()=>{
+    "did-finish-load",
+    ()=>{
 
 
-            log(
-                "YouTube TV loaded"
-            );
+        log(
+            "YouTube TV loaded"
+        );
 
 
-            createOverlay();
+        createOverlay();
 
 
-            require("./controller")(
-                mainWindow
-            );
+        require("./controller")(
+            mainWindow
+        );
 
 
-        }
-    );
-
+    });
 
 
 
     mainWindow.on(
-        "closed",
-        ()=>{
+    "closed",
+    ()=>{
 
 
-            if(
-                overlayWindow &&
-                !overlayWindow.isDestroyed()
-            ){
+        if(
+            overlayWindow &&
+            !overlayWindow.isDestroyed()
+        ){
 
-                overlayWindow.close();
-
-            }
-
-
-            overlayWindow=null;
-
-            mainWindow=null;
-
+            overlayWindow.close();
 
         }
-    );
+
+
+        overlayWindow=null;
+
+        mainWindow=null;
+
+
+    });
 
 
 }
+
+
 
 
 
@@ -416,36 +499,60 @@ app.whenReady().then(async()=>{
 
 
     log(
-        "Starting"
+        "Application starting"
     );
 
 
     await session.defaultSession.clearCache();
 
 
+
     session.defaultSession.webRequest.onBeforeSendHeaders(
-        (details,callback)=>{
+    (details,callback)=>{
 
 
-            details.requestHeaders[
-                "User-Agent"
-            ] =
-            TV_USER_AGENT;
+        details.requestHeaders[
+            "User-Agent"
+        ] =
+        TV_USER_AGENT;
 
 
-            callback({
 
-                requestHeaders:
-                    details.requestHeaders
+        callback({
 
-            });
+            requestHeaders:
+            details.requestHeaders
+
+        });
 
 
-        }
-    );
+    });
+
 
 
     createWindow();
+
+
+});
+
+
+
+
+
+
+
+app.on(
+"window-all-closed",
+()=>{
+
+
+    if(
+        process.platform !== "darwin"
+    ){
+
+        app.quit();
+
+    }
 
 
 });

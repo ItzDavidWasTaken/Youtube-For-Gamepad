@@ -1,44 +1,61 @@
 const {
-    contextBridge,
-    ipcRenderer
-} = require("electron");
+contextBridge,
+ipcRenderer
+}=require("electron");
+
+
+
+const controls =
+require("./controls");
 
 
 
 contextBridge.exposeInMainWorld(
-    "controllerAPI",
-    {
+"controllerAPI",
+{
 
 
-        sendAction:(action)=>{
+sendAction:(action)=>{
 
-            ipcRenderer.send(
-                "controller-action",
-                action
-            );
-
-        },
-
-
-        sendStatus:(status)=>{
-
-            ipcRenderer.send(
-                "controller-status",
-                status
-            );
-
-        },
-
-
-        sendOverlay:(state)=>{
-
-            ipcRenderer.send(
-                "overlay",
-                state
-            );
-
-        }
-
-
-    }
+ipcRenderer.send(
+"controller-action",
+action
 );
+
+},
+
+
+
+sendStatus:(status)=>{
+
+ipcRenderer.send(
+"controller-status",
+status
+);
+
+},
+
+
+
+sendOverlay:(data)=>{
+
+ipcRenderer.send(
+"overlay-update",
+data
+);
+
+},
+
+
+
+getControl:(state,button)=>{
+
+
+return controls[state]?.[button] || null;
+
+
+}
+
+
+
+});

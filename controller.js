@@ -1,4 +1,10 @@
+const controls =
+require("./controls");
+
+
+
 module.exports = function(win){
+
 
 
 win.webContents.executeJavaScript(`
@@ -6,78 +12,76 @@ win.webContents.executeJavaScript(`
 (()=>{
 
 
+let state = "HOME";
+
+
 let previousButtons = [];
 
 let lastMove = 0;
-
-let hadController = false;
-
-let lastVideoState = false;
 
 
 const MOVE_DELAY = 180;
 
 
 
+
 function send(action){
 
-    window.controllerAPI.sendAction(action);
+    window.controllerAPI.sendAction(
+        action
+    );
 
 }
 
 
 
 
-function checkVideo(){
 
+window.controllerAPI.setState =
+function(newState){
 
-    const video =
-        document.querySelector("video");
+    state = newState;
 
-
-    if(!video)
-        return;
-
-
-
-    const playing =
-        !video.paused &&
-        video.currentTime > 0 &&
-        !video.ended;
+};
 
 
 
-    if(
-        playing !== lastVideoState
-    ){
 
 
-        if(playing){
-
-            window.controllerAPI.sendOverlay(
-                "hide"
-            );
-
-        }
-        else{
-
-            window.controllerAPI.sendOverlay(
-                "show"
-            );
-
-        }
+function buttonName(id){
 
 
-        lastVideoState = playing;
+switch(id){
 
-    }
+
+case 0:return "A";
+case 1:return "B";
+case 2:return "X";
+case 3:return "Y";
+
+case 4:return "LB";
+case 5:return "RB";
+
+case 6:return "LT";
+case 7:return "RT";
+
+case 9:return "START";
+
 
 }
+
+
+return null;
+
+
+}
+
 
 
 
 
 function poll(){
+
 
 
 const pads =
@@ -86,44 +90,6 @@ navigator.getGamepads();
 
 const pad =
 pads[0];
-
-
-
-const connected =
-pad !== null;
-
-
-
-if(
-connected &&
-!hadController
-){
-
-window.controllerAPI.sendStatus(
-"connected"
-);
-
-}
-
-
-
-if(
-!connected &&
-hadController
-){
-
-window.controllerAPI.sendStatus(
-"disconnected"
-);
-
-}
-
-
-
-hadController =
-connected;
-
-
 
 
 
@@ -141,52 +107,38 @@ button.pressed &&
 ){
 
 
-switch(index){
+
+const name =
+buttonName(index);
 
 
-case 0:
-send("SELECT");
-break;
+
+if(name){
 
 
-case 1:
-send("BACK");
-break;
-
-
-case 9:
-send("PLAY");
-break;
-
-
-case 12:
-send("UP");
-break;
-
-
-case 13:
-send("DOWN");
-break;
-
-
-case 14:
-send("LEFT");
-break;
-
-
-case 15:
-send("RIGHT");
-break;
-
-
-}
-
-
-}
-
-
-}
+const action =
+window.controllerAPI.getControl(
+state,
+name
 );
+
+
+
+if(action){
+
+send(action);
+
+}
+
+
+}
+
+
+}
+
+
+});
+
 
 
 
@@ -199,14 +151,13 @@ b=>b.pressed
 
 
 
+
 const now =
 Date.now();
 
 
-if(
-now-lastMove >
-MOVE_DELAY
-){
+
+if(now-lastMove > MOVE_DELAY){
 
 
 const x =
@@ -221,33 +172,34 @@ pad.axes[1];
 if(x < -0.65){
 
 send("LEFT");
+
 lastMove=now;
 
 }
-
 
 
 if(x > 0.65){
 
 send("RIGHT");
+
 lastMove=now;
 
 }
-
 
 
 if(y < -0.65){
 
 send("UP");
+
 lastMove=now;
 
 }
-
 
 
 if(y > 0.65){
 
 send("DOWN");
+
 lastMove=now;
 
 }
@@ -256,7 +208,9 @@ lastMove=now;
 }
 
 
+
 }
+
 
 
 
@@ -265,14 +219,9 @@ poll
 );
 
 
+
 }
 
-
-
-setInterval(
-checkVideo,
-1000
-);
 
 
 poll();
